@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, status, generics
 from .permissions import IsOwner, IsUserOrReadOnly
 
+from .filters import ReceiptFilter
 from .serializers import UserSerializer, ReceiptSerializer, TagSerializer, UserSignupSerializer
 from .models import Receipt, Tag
 from django.contrib.auth.models import User
@@ -32,6 +33,7 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 class ReceiptViewSet(viewsets.ModelViewSet):
     queryset = Receipt.objects.all()
     serializer_class = ReceiptSerializer
+    filterset_class = ReceiptFilter
 
     def get_permissions(self):
         if self.action in ['list']:
