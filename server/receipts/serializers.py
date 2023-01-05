@@ -50,7 +50,7 @@ class ReceiptSerializer(serializers.ModelSerializer):
         required=False
     )
     receipt_image = serializers.ImageField(required=False)
-    user = serializers.StringRelatedField(read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
     tags = ManyToManyListField(required=False)
 
     class Meta:
