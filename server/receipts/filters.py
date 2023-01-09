@@ -30,7 +30,6 @@ class ReceiptFilter(filters.FilterSet):
         q_objects = Q()
         for tag in tags:
             q_objects |= Q(tags__tag_name__icontains=tag)
-        print(queryset.filter(q_objects).distinct())
         return queryset.filter(q_objects).distinct()
 
     def filter_tags_contains_all(self, queryset, name, value):
