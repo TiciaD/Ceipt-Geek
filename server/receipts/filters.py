@@ -35,6 +35,6 @@ class ReceiptFilter(filters.FilterSet):
     def filter_tags_contains_all(self, queryset, name, value):
         tags = value.split(',')
         for tag in tags:
-            queryset = queryset.filter(tags__tag_name__iexact=tag)
+            queryset = queryset.filter(tags__tag_name__icontains=tag)
         return queryset
 
