@@ -9,6 +9,7 @@ class ReceiptFilter(filters.FilterSet):
     date_lte = filters.DateFilter(field_name='date', lookup_expr='lte')
     cost_gte = filters.NumberFilter(field_name='cost', lookup_expr='gte')
     cost_lte = filters.NumberFilter(field_name='cost', lookup_expr='lte')
+    expense = filters.CharFilter(field_name='expense', lookup_expr='icontains')
     store_name = filters.CharFilter(
         field_name='store_name',
         lookup_expr='icontains'
@@ -22,7 +23,8 @@ class ReceiptFilter(filters.FilterSet):
         fields = [
             'date_gte', 'date_lte', 'cost_gte',
             'cost_lte', 'store_name', 'user_id',
-            'tags_contains_any', 'tags_contains_all'
+            'tags_contains_any', 'tags_contains_all',
+            'expense'
         ]
 
     def filter_tags_contains_any(self, queryset, name, value):
@@ -37,4 +39,3 @@ class ReceiptFilter(filters.FilterSet):
         for tag in tags:
             queryset = queryset.filter(tags__tag_name__icontains=tag)
         return queryset
-
