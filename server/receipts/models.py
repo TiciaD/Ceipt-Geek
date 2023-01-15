@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .choices import EXPENSE_OPTIONS
 
 
 class Receipt(models.Model):
@@ -9,6 +10,7 @@ class Receipt(models.Model):
         null=True
     )
     date = models.DateField()
+    expense = models.CharField(max_length=80, choices=EXPENSE_OPTIONS)
     tax = models.DecimalField(
         max_digits=2,
         decimal_places=2,
@@ -25,6 +27,10 @@ class Receipt(models.Model):
         upload_to='images', 
         blank=True, 
         null=True
+    )
+    notes = models.TextField(
+        null=True,
+        blank=True,
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)

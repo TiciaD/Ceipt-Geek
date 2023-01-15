@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from .models import Receipt, Tag
 from django.contrib.auth.models import User
+from .choices import EXPENSE_OPTIONS
 
 from django.contrib.auth import password_validation
 from django.contrib.auth.hashers import make_password
@@ -34,7 +35,10 @@ class ManyToManyListField(serializers.ListField):
 
 
 class ReceiptSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(read_only=True)
     store_name = serializers.CharField(required=False)
+    expense = serializers.ChoiceField(choices=EXPENSE_OPTIONS)
     tax = serializers.DecimalField(
         max_digits=2,
         decimal_places=2,
@@ -50,19 +54,22 @@ class ReceiptSerializer(serializers.ModelSerializer):
         required=False
     )
     receipt_image = serializers.ImageField(required=False)
-    user_id = serializers.PrimaryKeyRelatedField(read_only=True)
+    notes = serializers.CharField(required=False)
     tags = ManyToManyListField(required=False)
 
     class Meta:
         model = Receipt
         fields = [
-            'id', 
+            'id',
+            'user', 
             'user_id', 
             'store_name', 
-            'date', 
+            'date',
+            'expense', 
             'tax',  
             'cost', 
             'receipt_image', 
+            'notes',
             'tags'
         ]
 
@@ -109,16 +116,3 @@ class UserSignupSerializer(serializers.ModelSerializer):
         password_validation.validate_password(password)
 
         return make_password(password)
-
-
-# class ReceiptSerializer(serializers.ModelSerializer):
-#     user = serializers.StringRelatedField(read_only=True)
-#     tags = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = Receipt
-#         fields = ['id', 'user', 'store_name', 'date', 'receipt_image', 'tags']
-
-#     def get_tags(self, obj):
-#         tags = obj.tags.all()
-#         return [tag.tag_name for tag in tags]
