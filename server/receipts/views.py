@@ -7,12 +7,12 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, status, generics
 from .permissions import IsOwner, IsUserOrReadOnly
-from django_filters.rest_framework import OrderingFilter
 
 from .filters import ReceiptFilter
 from .serializers import UserSerializer, ReceiptSerializer, TagSerializer, UserSignupSerializer
 from .models import Receipt, Tag
 from django.contrib.auth.models import User
+from .pagination import StandardResultsSetPagination
 
 
 class UserSignupView(generics.CreateAPIView):
@@ -35,6 +35,7 @@ class ReceiptViewSet(viewsets.ModelViewSet):
     queryset = Receipt.objects.all()
     serializer_class = ReceiptSerializer
     filterset_class = ReceiptFilter
+    pagination_class = StandardResultsSetPagination
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
