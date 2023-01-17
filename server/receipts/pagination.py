@@ -11,7 +11,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 
     def get_paginated_response(self, data):
         return Response({
-            'count': self.page.paginator.count,
+            'total_receipts': self.page.paginator.count,
             'links': {
                 'next': self.get_next_link(),
                 'previous': self.get_previous_link(),
