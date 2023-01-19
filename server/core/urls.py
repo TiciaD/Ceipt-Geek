@@ -22,7 +22,9 @@ from django.conf import settings
 from django.views.generic.base import RedirectView
 from graphene_django.views import GraphQLView
 from graphene_file_upload.django import FileUploadGraphQLView
-from .schema import schema
+from receipts.graphql.receipts import schema
+from receipts.graphql.tags import schema
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -47,7 +47,8 @@ INSTALLED_APPS = [
 ]
 
 GRAPHENE = {
-    'SCHEMA': 'core.schema.schema'
+    'SCHEMA': 'receipts.graphql.receipts.schema.schema',
+    'SCHEMA': 'receipts.graphql.tags.schema.schema',
 }
 
 MIDDLEWARE = [

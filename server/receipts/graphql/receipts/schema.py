@@ -1,10 +1,8 @@
 
 import graphene
 from graphene_django.types import DjangoObjectType, ObjectType
-from .models import Receipt
+from ...models import Receipt
 from graphene_file_upload.scalars import Upload
-from django.contrib.auth.models import User
-
 
 class ReceiptType(DjangoObjectType):
     class Meta:
@@ -33,8 +31,10 @@ class ReceiptInput(graphene.InputObjectType):
     user_id = graphene.ID()
     store_name = graphene.String()
     date = graphene.Date()
-    cost = graphene.Decimal()
+    expense = graphene.String()
     tax = graphene.Decimal()
+    cost = graphene.Decimal()
+    notes = graphene.String()
     receipt_image = Upload(required=False)
     
 
@@ -43,7 +43,6 @@ class CreateReceipt(graphene.Mutation):
     class Arguments:
         receipt_data = ReceiptInput(required=True)
 
-    # ok = graphene.Boolean()
     receipt = graphene.Field(ReceiptType)
 
     @staticmethod
@@ -52,8 +51,10 @@ class CreateReceipt(graphene.Mutation):
             user_id=receipt_data.user_id,
             store_name=receipt_data.store_name,
             date=receipt_data.date,
-            cost=receipt_data.cost,
+            expense=receipt_data.expense,
             tax=receipt_data.tax,
+            cost=receipt_data.cost,
+            notes=receipt_data.notes,
             receipt_image=receipt_data.receipt_image,
         )
         try:
@@ -75,25 +76,41 @@ class UpdateReceipt(graphene.Mutation):
         receipt_instance = Receipt.objects.get(pk=receipt_data.id)
 
         if receipt_instance:
-            # receipt_instance.id=receipt_data.id
             receipt_instance.store_name=receipt_data.store_name
             receipt_instance.date=receipt_data.date
-            receipt_instance.cost=receipt_data.cost
+            receipt_instance.expense=receipt_data.expense
             receipt_instance.tax=receipt_data.tax
+            receipt_instance.cost=receipt_data.cost
+            receipt_instance.notes=receipt_data.notes
             receipt_instance.receipt_image=receipt_data.receipt_image
-
             try:
                 receipt_instance.save()
             except Exception as e:
                 print(e)
-            return UpdateReceipt(receipt=receipt_instance)
-        return UpdateReceipt(book=None)
+        return UpdateReceipt(receipt=receipt_instance)
+
+class DeleteReceipt(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    success = graphene.Boolean()
+    receipt = graphene.Field(lambda: ReceiptType)
+
+    @staticmethod
+    def mutate(root, info, id):
+        try:
+            receipt = Receipt.objects.get(id=id)
+            receipt.delete()
+            return DeleteReceipt(success=True, receipt=receipt)
+        except Receipt.DoesNotExist:
+            return DeleteReceipt(success=False, receipt=None)
+
 
 class Mutation(graphene.ObjectType):
     create_receipt = CreateReceipt.Field()
     update_receipt = UpdateReceipt.Field()
+    delete_receipt = DeleteReceipt.Field()
 
 
 
-# schema = graphene.Schema(query=Query)
 schema = graphene.Schema(query=Query, mutation=Mutation)
