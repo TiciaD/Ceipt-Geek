@@ -55,19 +55,12 @@ interface DarkModeSwitchProps {
   toggleTheme: React.MouseEventHandler<HTMLButtonElement>;
 }
 
-export default function DarkModeSwitch({
-  toggleTheme,
-}: DarkModeSwitchProps) {
+export default function DarkModeSwitch({ toggleTheme }: DarkModeSwitchProps) {
   return (
     <FormGroup>
       <FormControlLabel
-        control={
-          <MaterialUISwitch
-            sx={{ m: 1 }}
-            onClick={toggleTheme}
-          />
-        }
-        label="MUI switch"
+        control={<MaterialUISwitch sx={{ m: 1 }} onClick={toggleTheme} />}
+        label=""
       />
     </FormGroup>
   );
