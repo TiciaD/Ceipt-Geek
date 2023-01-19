@@ -8,7 +8,6 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.hashers import make_password
 from rest_framework.validators import UniqueValidator
 
-
 class TagSerializer(serializers.ModelSerializer):
     receipts = serializers.SerializerMethodField()
 
@@ -36,7 +35,7 @@ class ManyToManyListField(serializers.ListField):
 
 class ReceiptSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
-    store_name = serializers.CharField(required=False)
+    user_id = serializers.PrimaryKeyRelatedField(read_only=True)
     expense = serializers.ChoiceField(choices=EXPENSE_OPTIONS)
     tax = serializers.DecimalField(
         max_digits=2,
@@ -52,15 +51,14 @@ class ReceiptSerializer(serializers.ModelSerializer):
         max_value=999999999,
         required=False
     )
-    receipt_image = serializers.ImageField(required=False)
-    notes = serializers.CharField(required=False)
     tags = ManyToManyListField(required=False)
 
     class Meta:
         model = Receipt
         fields = [
-            'id', 
+            'id',
             'user', 
+            'user_id', 
             'store_name', 
             'date',
             'expense', 

@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'receipts',
     'rest_framework',
     'corsheaders',
+    'django_filters',
+    'rest_framework.pagination',
 ]
 
 MIDDLEWARE = [
@@ -62,7 +64,10 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'django_filters', 'templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -190,3 +195,7 @@ CSRF_TRUSTED_ORIGINS = ['https://*.gitpod.io']
 
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
