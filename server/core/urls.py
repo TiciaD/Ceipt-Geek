@@ -24,6 +24,7 @@ from graphene_django.views import GraphQLView
 from graphene_file_upload.django import FileUploadGraphQLView
 from receipts.graphql.receipts import schema
 from receipts.graphql.tags import schema
+from receipts.graphql.users import schema
 
 
 urlpatterns = [
