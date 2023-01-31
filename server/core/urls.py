@@ -20,11 +20,13 @@ from django.conf.urls import include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.views.generic.base import RedirectView
+from graphene_django.views import GraphQLView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', RedirectView.as_view(url='/api')),
     path('api/', include('receipts.urls')),
+    path('graphql/',(GraphQLView.as_view(graphiql=True))),
 ]
 
 urlpatterns += [
