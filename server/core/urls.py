@@ -21,18 +21,12 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.views.generic.base import RedirectView
 from graphene_django.views import GraphQLView
-from graphene_file_upload.django import FileUploadGraphQLView
-from receipts.graphql.receipts import schema
-from receipts.graphql.tags import schema
-from receipts.graphql.users import schema
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', RedirectView.as_view(url='/api')),
     path('api/', include('receipts.urls')),
     path('graphql/',(GraphQLView.as_view(graphiql=True))),
-    # path('graphql/', FileUploadGraphQLView.as_view(graphiql=True)),
 ]
 
 urlpatterns += [

@@ -1,6 +1,12 @@
 import graphene
 from graphene_django.types import DjangoObjectType, ObjectType
 from django.contrib.auth import get_user_model
+from django.core.validators import validate_email
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from graphql import GraphQLError
+
+
 
 class UserType(DjangoObjectType):
     class Meta:
@@ -26,16 +32,25 @@ class CreateUser(graphene.Mutation):
         password = graphene.String(required=True)
         email = graphene.String(required=True)
 
+
     def mutate(self, info, username, firstname, lastname, password, email):
+        try:
+            validate_password(password)
+            validate_email(email)
+        except Exception as e:
+            return GraphQLError(str(e))
+
         user = get_user_model()(
             username=username,
             email=email,
             last_name=lastname,
-            first_name=firstname
+            first_name=firstname,
         )
         user.set_password(password)
-        user.save()
-
+        try:
+            user.save()
+        except Exception as e:
+            print(e)
         return CreateUser(user=user)
 
 class UpdateUser(graphene.Mutation):

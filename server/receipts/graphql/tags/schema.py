@@ -86,4 +86,4 @@ class TagMutation(graphene.ObjectType):
 
 
 
-schema = graphene.Schema(query=TagQuery, mutation=TagMutation)
+tags_schema = graphene.Schema(query=TagQuery, mutation=TagMutation)

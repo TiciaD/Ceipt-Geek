@@ -49,9 +49,7 @@ INSTALLED_APPS = [
 ]
 
 GRAPHENE = {
-    'SCHEMA': 'receipts.graphql.receipts.schema.schema',
-    'SCHEMA': 'receipts.graphql.tags.schema.schema',
-    'SCHEMA': 'receipts.graphql.users.schema.schema',
+    'SCHEMA': 'receipts.graphql.schema.schema',
 
 }
 
