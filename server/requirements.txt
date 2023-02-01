@@ -6,3 +6,5 @@ Pillow==9.3.0
 markdown==3.4.1
 django-filter==22.1
 django-advanced_password_validation==1.1.1
+graphene-django>=3
+django-graphql-jwt==0.3.4
