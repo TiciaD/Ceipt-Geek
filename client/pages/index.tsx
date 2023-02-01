@@ -35,7 +35,7 @@ export default function Home(props: HomeProps) {
               <Link href="/login">LOGIN</Link>
             </Button>
             <Button variant="contained" size="small">
-              CREATE AN ACCOUNT
+              <Link href="/createaccount">CREATE AN ACCOUNT</Link>
             </Button>
             <DarkModeSwitch toggleTheme={props.toggleTheme} />
           </CardActions>

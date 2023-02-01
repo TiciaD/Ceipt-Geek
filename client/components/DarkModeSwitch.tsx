@@ -2,6 +2,7 @@ import { styled } from "@mui/material/styles";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
+import { useMediaQuery } from "@mui/material";
 
 // https://mui.com/material-ui/react-switch/
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
@@ -56,10 +57,18 @@ interface DarkModeSwitchProps {
 }
 
 export default function DarkModeSwitch({ toggleTheme }: DarkModeSwitchProps) {
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
   return (
     <FormGroup>
       <FormControlLabel
-        control={<MaterialUISwitch sx={{ m: 1 }} onClick={toggleTheme} />}
+        control={
+          <MaterialUISwitch
+            sx={{ m: 1 }}
+            onClick={toggleTheme}
+            defaultChecked={prefersDarkMode}
+          />
+        }
         label=""
       />
     </FormGroup>
