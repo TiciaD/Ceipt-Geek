@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'django_filters',
     'rest_framework.pagination',
     'graphene_django',
-    'graphql_jwt',
+    'graphene_file_upload',
+    'rest_framework_jwt',
 ]
 
 GRAPHENE = {
@@ -57,20 +58,14 @@ GRAPHENE = {
     ],
 }
 
-JWT_AUTH = {
+GRAPHQL_JWT = {
     'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY'),
-    'JWT_ALGORITHM': 'HS256',
-    'JWT_VERIFY': True,
-    'JWT_VERIFY_EXPIRATION': True,
-    'JWT_LEEWAY': 0,
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
-    'JWT_AUDIENCE': None,
-    'JWT_ISSUER': None,
 }
 
 AUTHENTICATION_BACKENDS = [
-    "graphql_jwt.backends.JSONWebTokenBackend",
-    "django.contrib.auth.backends.ModelBackend",
+    'django.contrib.auth.backends.ModelBackend',
+    'graphql_jwt.backends.JSONWebTokenBackend',
 ]
 
 MIDDLEWARE = [
