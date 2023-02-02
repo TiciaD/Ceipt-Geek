@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'rest_framework.pagination',
     'graphene_django',
     'graphene_file_upload',
-    'rest_framework_jwt',
 ]
 
 GRAPHENE = {

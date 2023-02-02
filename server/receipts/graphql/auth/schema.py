@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 
 from graphql_jwt.shortcuts import get_token
 from django.contrib.auth import login
-from rest_framework_jwt.settings import api_settings
 
 
 class LoginMutation(graphene.Mutation):
