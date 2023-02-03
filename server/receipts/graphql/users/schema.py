@@ -28,8 +28,6 @@ class CreateUser(graphene.Mutation):
 
     class Arguments:
         username = graphene.String(required=True)
-        # firstname= graphene.String(required=False)
-        # lastname= graphene.String(required=False)
         password = graphene.String(required=True)
         email = graphene.String(required=True)
 
@@ -43,8 +41,6 @@ class CreateUser(graphene.Mutation):
         user = get_user_model()(
             username=username,
             email=email,
-            # last_name=lastname,
-            # first_name=firstname,
         )
         user.set_password(password)
         try:
@@ -61,8 +57,6 @@ class UpdateUser(graphene.Mutation):
         id = graphene.Int(required=True)
         username = graphene.String()
         password = graphene.String()
-        # firstname = graphene.String()
-        # lastname = graphene.String()
         email = graphene.String()
 
     def mutate(self, info, id, username=None, password=None, email=None):
@@ -70,16 +64,13 @@ class UpdateUser(graphene.Mutation):
 
         if username:
             user.username = username
-        # if firstname:
-        #     user.firstname = firstname
-        # if lastname:
-        #     user.lastname = lastname
         if password:
             user.set_password(password)
         if email:
             user.email = email
 
         user.save()
+        
         return UpdateUser(user=user)
 
 

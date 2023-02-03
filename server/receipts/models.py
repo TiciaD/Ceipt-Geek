@@ -1,7 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AbstractUser
 from .choices import EXPENSE_OPTIONS
 
+
+class ExtendedUser(AbstractUser):
+    email = models.EmailField(unique=True, blank=False)
+
+    USERNAME_FIELD = 'email'
 
 class Receipt(models.Model):
     store_name = models.CharField(
