@@ -1,12 +1,15 @@
 from django.db import models
-from django.contrib.auth.models import User, AbstractUser
+from django.contrib.auth.models import AbstractUser
 from .choices import EXPENSE_OPTIONS
+
+from django.contrib.auth import get_user_model
 
 
 class ExtendedUser(AbstractUser):
-    email = models.EmailField(unique=True, blank=False)
+    email = models.EmailField(unique=True)
 
     USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'password']
 
 class Receipt(models.Model):
     store_name = models.CharField(
@@ -38,7 +41,7 @@ class Receipt(models.Model):
         blank=True,
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     tags = models.ManyToManyField('Tag')
 
     class meta:
