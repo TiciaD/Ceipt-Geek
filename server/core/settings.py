@@ -50,6 +50,9 @@ INSTALLED_APPS = [
     'graphene_file_upload',
 ]
 
+AUTH_USER_MODEL = 'receipts.ExtendedUser'
+
+
 GRAPHENE = {
     'SCHEMA': 'receipts.graphql.schema.schema',
     'MIDDLEWARE': [
@@ -63,7 +66,7 @@ GRAPHQL_JWT = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
     'graphql_jwt.backends.JSONWebTokenBackend',
 ]
 
