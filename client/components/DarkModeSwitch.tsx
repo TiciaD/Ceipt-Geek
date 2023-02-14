@@ -53,7 +53,7 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 }));
 
 interface DarkModeSwitchProps {
-  toggleTheme: React.MouseEventHandler<HTMLButtonElement>;
+  toggleTheme: () => void;
 }
 
 export default function DarkModeSwitch({ toggleTheme }: DarkModeSwitchProps) {

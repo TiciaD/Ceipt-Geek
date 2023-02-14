@@ -1,9 +1,15 @@
+import React from "react";
 import "../styles/globals.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import { CssBaseline } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Layout from "../components/Layout";
+
+export const ColorModeContext = React.createContext({
+  toggleColorMode: () => {},
+});
 
 const lightTheme = createTheme({
   components: {
@@ -101,11 +107,22 @@ function App({ Component, pageProps }: AppProps) {
     setActiveTheme(getActiveTheme(selectedTheme));
   }, [selectedTheme]);
 
+  const colorMode = {
+    toggleColorMode: () => {
+      const desiredTheme = selectedTheme === "light" ? "dark" : "light";
+      setSelectedTheme(desiredTheme);
+    },
+  };
+
   return (
-    <ThemeProvider theme={activeTheme}>
-      <CssBaseline />
-      <Component {...pageProps} toggleTheme={toggleTheme} />
-    </ThemeProvider>
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={activeTheme}>
+        <CssBaseline />
+        <Layout>
+          <Component {...pageProps} toggleTheme={toggleTheme} />
+        </Layout>
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   );
 }
 
