@@ -5,6 +5,7 @@ from django.core.validators import validate_email
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
+import re
 
 
 class UserType(DjangoObjectType):
@@ -30,9 +31,21 @@ class CreateUser(graphene.Mutation):
         username = graphene.String(required=True)
         password = graphene.String(required=True)
         email = graphene.String(required=True)
+    
+
+    @staticmethod
+    def validate_username(string):
+        if not re.match(r'^[\w.@+-]+$', string):
+            raise ValidationError('Enter a valid username. This value may contain only letters, numbers, and @/./+/-/_ characters.')
+        if len(string) < 2:
+            raise ValidationError('Username must be at least 3 characters long.')
+        if len(string) > 20:
+            raise ValidationError('Username cannot be more than 30 characters long.')
+
 
     def mutate(self, info, username, password, email):
         try:
+            CreateUser.validate_username(username)
             validate_password(password)
             validate_email(email)
         except Exception as e:
