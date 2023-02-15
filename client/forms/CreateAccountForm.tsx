@@ -9,14 +9,14 @@ import {
   InputLabel,
   OutlinedInput,
   TextField,
-  Link,
+  Link
 } from "@mui/material";
-import { useFormik } from "formik";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { LoginSchema } from "../types/schemas";
+import { useFormik } from "formik";
+import { CreateAccountSchema } from "../types/schemas";
 
-export default function LoginForm() {
+export default function CreateAccountForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -28,10 +28,11 @@ export default function LoginForm() {
 
   const formik = useFormik({
     initialValues: {
+      username: "",
       email: "",
       password: "",
     },
-    validationSchema: LoginSchema,
+    validationSchema: CreateAccountSchema,
     onSubmit: (values) => {
       alert(JSON.stringify(values, null, 2));
     },
@@ -50,6 +51,18 @@ export default function LoginForm() {
         <Grid item>
           <TextField
             sx={{ width: { xs: "12rem", sm: "15rem" } }}
+            id="username"
+            name="username"
+            label="Username"
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            error={formik.touched.username && Boolean(formik.errors.username)}
+            helperText={formik.touched.username && formik.errors.username}
+          />
+        </Grid>
+        <Grid item>
+          <TextField
+            sx={{ width: { xs: "12rem", sm: "15rem" } }}
             id="email"
             name="email"
             label="Email"
@@ -59,7 +72,7 @@ export default function LoginForm() {
             helperText={formik.touched.email && formik.errors.email}
           />
         </Grid>
-        <Grid item xs={8}>
+        <Grid item>
           <FormControl variant="outlined">
             <InputLabel htmlFor="password">Password</InputLabel>
             <OutlinedInput
@@ -87,7 +100,7 @@ export default function LoginForm() {
             {formik.touched.password && formik.errors.password && (
               <FormHelperText
                 error
-                id="login-error"
+                id="create-account-error"
                 sx={{ mx: 0, width: { xs: "12rem", sm: "15rem" } }}
               >
                 {formik.errors.password}
@@ -97,11 +110,11 @@ export default function LoginForm() {
         </Grid>
         <Grid item xs={8}>
           <Button type="submit" variant="contained" size="large">
-            LOGIN
+            SIGN UP
           </Button>
         </Grid>
         <Grid item>
-          <Link href="/createaccount">Don't have an account?</Link>
+            <Link href='/login'>Already have an account?</Link>
         </Grid>
       </Grid>
     </form>
