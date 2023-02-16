@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-import os
 from dotenv import load_dotenv
+import os
+import datetime
 
 load_dotenv()
 
@@ -34,7 +35,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'graphene_django',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,12 +46,26 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'rest_framework.pagination',
+    'graphene_django',
+    'graphene_file_upload',
 ]
 
 GRAPHENE = {
     'SCHEMA': 'receipts.graphql.schema.schema',
-
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
 }
+
+GRAPHQL_JWT = {
+    'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY'),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
+}
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'graphql_jwt.backends.JSONWebTokenBackend',
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -63,7 +77,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'graphql_jwt.decorators.jwt_cookie',
 ]
+
+JWT_AUTH_COOKIE = 'jwt_auth_cookie'
 
 ROOT_URLCONF = 'core.urls'
 
@@ -205,3 +222,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
+
+AUTH_USER_MODEL = 'receipts.ExtendedUser'

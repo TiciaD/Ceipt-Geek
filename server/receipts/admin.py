@@ -4,7 +4,7 @@ from .models import Receipt, Tag
 
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import ListFilter
-# from django.contrib.auth.models import User
+from .models import ExtendedUser
 
 # Register your models here.
 
@@ -42,5 +42,6 @@ class TagAdmin(admin.ModelAdmin):
     list_filter = ('tag_name',)
 
 
+admin.site.register(ExtendedUser)
 admin.site.register(Receipt, ReceiptAdmin)
 admin.site.register(Tag, TagAdmin)

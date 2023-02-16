@@ -1,12 +1,14 @@
 from rest_framework import serializers
 
 from .models import Receipt, Tag
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from .choices import EXPENSE_OPTIONS
 
 from django.contrib.auth import password_validation
 from django.contrib.auth.hashers import make_password
 from rest_framework.validators import UniqueValidator
+
+User = get_user_model()
 
 class TagSerializer(serializers.ModelSerializer):
     receipts = serializers.SerializerMethodField()

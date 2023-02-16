@@ -11,8 +11,10 @@ from .permissions import IsOwner, IsUserOrReadOnly
 from .filters import ReceiptFilter
 from .serializers import UserSerializer, ReceiptSerializer, TagSerializer, UserSignupSerializer
 from .models import Receipt, Tag
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from .pagination import StandardResultsSetPagination
+
+User = get_user_model()
 
 
 class UserSignupView(generics.CreateAPIView):
