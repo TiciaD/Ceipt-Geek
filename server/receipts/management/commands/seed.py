@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.core.management.base import BaseCommand
 import random
 import logging
@@ -12,10 +13,21 @@ from receipts.choices import EXPENSE_OPTIONS
 # provides data logging for the script. __name__ ties the logger to this specific
 # script which is useful if there are multiple loggers in different locations.
 logger = logging.getLogger(__name__)
+# displays logging messages to the console at level debug and higher
+logging.basicConfig(level=logging.DEBUG)
 
 User = get_user_model()
 
-# python manage.py seed --mode=refresh
+# THIS SEED FILE GENERATES RANDOM DATA FOR THE RECEIPT APP
+# To use this script, navigate to the root of the backend (server)
+# and in the console run: python manage.py seed
+# There are additional arguments you can pass in:
+# --mode specifies the mode. By default, mode=refresh, which will delete all
+# data from the database, then seed the database.
+# --mode=clear will instead delete all data from the database without seeding data.
+# --num_receipts specifies the number of receipts to be created.
+# For example, --num_receipts=10 will seed the database with 10 receipts.
+# By default --num_receipts=50.
 
 """ Clear all data from the database then seeds data """
 MODE_REFRESH = 'refresh'
@@ -28,16 +40,19 @@ class Command(BaseCommand):
     help = "seed database with random data for testing and development."
 
     def add_arguments(self, parser):
-        parser.add_argument('--mode', type=str, help="Mode")
+        parser.add_argument('--mode', type=str, default='refresh', help="Mode")
+        parser.add_argument('--num_receipts', type=int,
+                            default=50, help='Number of receipts to generate')
 
     def handle(self, *args, **options):
         mode = options['mode']
+        num_receipts = options['num_receipts']
         self.stdout.write('starting seed...')
         if mode == MODE_REFRESH:
             self.stdout.write('refreshing the database...')
         elif mode == MODE_CLEAR:
             self.stdout.write('clearing the database...')
-        run_seed(self, mode)
+        run_seed(self, mode, num_receipts)
         self.stdout.write('done.')
 
 
@@ -57,7 +72,7 @@ def create_receipt():
             'Silver', 'Gray', 'Violet', 'Indigo', 'Maroon', 'Brown']
     notes = ['Lunch with friends', 'Birthday present',
              'Gas for car', 'Weekly groceries', 'Monthly Potluck', 'Insurance Payment', 'Mortgage', 'New Car', 'Work Clothes', 'Student Loans', 'Pet Care', 'Daycare']
-    store_names = ['Walmart', 'Target', 'Whole Foods', 'Costco', 'Giant Tiget',
+    store_names = ['Walmart', 'Target', 'Whole Foods', 'Costco', 'Giant Tiger',
                    'Laser Tag', 'Volvo', 'Petco', 'Chapters', 'Babies R Us', 'Netflix']
     expense_options = EXPENSE_OPTIONS
     start_date = datetime(2022, 1, 1)
@@ -69,17 +84,19 @@ def create_receipt():
     # Generate random data
     store_name = random.choice(store_names)
     date = start_date + timedelta(days=random.randint(0, 364))
-    expense = random.choice(expense_options)
+    expense = random.choice(expense_options)[0]
     note = random.choice(notes)
     user = random.choice(users)
+    cost = Decimal(str(random.uniform(0, 100))).quantize(Decimal('0.01'))
+    tax = Decimal(str(random.uniform(0, 0.99))).quantize(Decimal('0.01'))
 
     # Create receipt
     receipt = Receipt.objects.create(
         store_name=store_name,
         date=date,
         expense=expense,
-        cost=random.uniform(0, 100),
-        tax=random.uniform(0, 10),
+        cost=cost,
+        tax=tax,
         notes=note,
         user=user
     )
@@ -100,11 +117,11 @@ def create_receipt():
     logger.info("{} receipt created.".format(receipt))
 
 
-def run_seed(self, mode):
+def run_seed(self, mode, num_receipts):
     """
     Seed database based on mode
 
-    :param mode: refresh / clear 
+    :param mode: refresh / clear
     :return:
     """
     # Clear data from tables
@@ -132,5 +149,5 @@ def run_seed(self, mode):
 
     # Seed data
     logger.info('creating receipts...')
-    for i in range(50):
+    for i in range(num_receipts):
         create_receipt()
