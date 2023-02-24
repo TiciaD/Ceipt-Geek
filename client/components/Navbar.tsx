@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -12,22 +12,55 @@ import AdbIcon from "@mui/icons-material/Adb";
 import DarkModeSwitch from "./DarkModeSwitch";
 import { AccountCircle } from "@mui/icons-material";
 import Link from "next/link";
+import { AUTH_TOKEN } from "../pages/_app";
+import { useRouter } from "next/router";
+import { useAuth } from "../utils/useAuth";
+
+
+interface NavLink {
+  label: string;
+  href: string;
+}
 
 const pages = ["Add Expense", "Expenses"];
-const settings = ["Profile", "Reports", "Dashboard", "Logout"];
+const settingsMenuLinks:NavLink[] = [
+  {
+    label: "Profile",
+    href: "/profile"
+  },
+  {
+    label: "Reports",
+    href: "/reports"
+  },
+  {
+    label: "Dashboard",
+    href: "/"
+  },
+]
+
 type NavbarProps = {
   toggleTheme: () => void;
 };
 
 function Navbar(props: NavbarProps) {
-  // Temporary Auth state until Authentication is implemented
-  const [auth, setAuth] = React.useState(false);
+  const [authToken, setAuthToken] = React.useState<string | null>(null);
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(
     null
   );
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
     null
   );
+  const { userToken, logout } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (userToken) {
+      setAuthToken(userToken);
+    } else {
+      setAuthToken(null)
+    }
+  }, [userToken, authToken]);
+  
 
   const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElNav(event.currentTarget);
@@ -43,6 +76,12 @@ function Navbar(props: NavbarProps) {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  const handleLogout = () => {
+    setAuthToken(null);
+    logout();
+    router.push('/login')
+  }
 
   return (
     <AppBar position="static" enableColorOnDark>
@@ -66,7 +105,7 @@ function Navbar(props: NavbarProps) {
           Ceipt-Geek
         </Typography>
 
-        {auth && (
+        {authToken && (
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
@@ -124,7 +163,7 @@ function Navbar(props: NavbarProps) {
         >
           Ceipt-Geek
         </Typography>
-        {auth && (
+        {authToken && (
           <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {pages.map((page) => (
               <Button
@@ -145,7 +184,7 @@ function Navbar(props: NavbarProps) {
           <DarkModeSwitch toggleTheme={props.toggleTheme} />
         </Box>
         <Box sx={{ flexGrow: 0 }}>
-          {auth ? (
+          {authToken ? (
             <div>
               <IconButton
                 size="large"
@@ -173,11 +212,16 @@ function Navbar(props: NavbarProps) {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
-                {settings.map((setting) => (
-                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                    <Typography textAlign="center">{setting}</Typography>
-                  </MenuItem>
+                {settingsMenuLinks.map((setting, i) => (
+                  <Link key={`${setting.label}_${i}`} href={setting.href}>
+                    <MenuItem>
+                      <Typography textAlign="center">{setting.label}</Typography>
+                    </MenuItem>
+                  </Link>
                 ))}
+                <MenuItem onClick={handleLogout}>
+                  <Typography textAlign="center">Logout</Typography>
+                </MenuItem>
               </Menu>
             </div>
           ) : (

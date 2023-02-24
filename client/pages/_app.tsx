@@ -1,15 +1,28 @@
-import React from "react";
+import React, { createContext} from "react";
 import "../styles/globals.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import { CssBaseline } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
+import { setContext } from '@apollo/client/link/context';
 import Layout from "../components/Layout";
 
-export const ColorModeContext = React.createContext({
+export const ColorModeContext = createContext({
   toggleColorMode: () => {},
 });
+
+interface AuthContext {
+  userToken: string | null;
+  setUserToken: (token: string | null) => void;
+}
+
+export const AuthContext = createContext<AuthContext>({
+  userToken: null,
+  setUserToken: () => {},
+});
+
 
 const lightTheme = createTheme({
   components: {
@@ -78,12 +91,33 @@ const darkTheme = createTheme({
 
 type Theme = "light" | "dark";
 
+const httpLink = createHttpLink({
+  uri: "http://localhost:8000/graphql/",
+});
+
+export const AUTH_TOKEN = "ceipt-geek-auth-token";
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem(AUTH_TOKEN);
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : ''
+    }
+  };
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache(),
+});
+
 function App({ Component, pageProps }: AppProps) {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const defaultTheme = prefersDarkMode ? "dark" : "light";
   const defaultActiveTheme = prefersDarkMode ? darkTheme : lightTheme;
   const [activeTheme, setActiveTheme] = useState(defaultActiveTheme);
   const [selectedTheme, setSelectedTheme] = useState<Theme>(defaultTheme);
+  const [currentToken, setCurrentToken] = useState<string | null>(null);
 
   function getActiveTheme(themeMode: Theme) {
     return themeMode === "light" ? lightTheme : darkTheme;
@@ -113,15 +147,25 @@ function App({ Component, pageProps }: AppProps) {
       setSelectedTheme(desiredTheme);
     },
   };
+  const authContextValues = {
+    userToken: currentToken,
+    setUserToken: (userToken: string | null) => {
+      setCurrentToken(userToken);
+    },
+  };
 
   return (
     <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={activeTheme}>
-        <CssBaseline />
-        <Layout>
-          <Component {...pageProps} toggleTheme={toggleTheme} />
-        </Layout>
-      </ThemeProvider>
+       <AuthContext.Provider value={authContextValues}>
+          <ThemeProvider theme={activeTheme}>
+            <CssBaseline />
+            <Layout>
+              <ApolloProvider client={client}>
+                <Component {...pageProps} toggleTheme={toggleTheme} />
+              </ApolloProvider>
+            </Layout>
+          </ThemeProvider>
+       </AuthContext.Provider>
     </ColorModeContext.Provider>
   );
 }
