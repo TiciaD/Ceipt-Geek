@@ -99,7 +99,11 @@ class UpdateReceipt(graphene.Mutation):
             receipt_instance.tax = receipt_data.tax
             receipt_instance.cost = receipt_data.cost
             receipt_instance.notes = receipt_data.notes
-            receipt_instance.receipt_image = receipt_data.receipt_image
+            if receipt_instance.receipt_image:
+                if receipt_data.receipt_image:
+                    public_id = receipt_instance.image_public_id()
+                    cloudinary.uploader.destroy(public_id)                    
+                receipt_instance.receipt_image = receipt_data.receipt_image
             try:
                 receipt_instance.save()
             except Exception as e:
@@ -118,6 +122,9 @@ class DeleteReceipt(graphene.Mutation):
     def mutate(root, info, id):
         try:
             receipt = Receipt.objects.get(id=id)
+            if receipt.receipt_image:
+                public_id = receipt.image_public_id()
+                cloudinary.uploader.destroy(public_id)
             receipt.delete()
             return DeleteReceipt(success=True, receipt=receipt)
         except Receipt.DoesNotExist:
