@@ -10,14 +10,24 @@ import {
   OutlinedInput,
   TextField,
   Link,
+  Alert,
 } from "@mui/material";
 import { useFormik } from "formik";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { LoginSchema } from "../types/schemas";
+import { LOGIN_MUTATION } from "../graphql/mutations";
+import { useMutation } from "@apollo/client";
+import { useRouter } from "next/router";
+import { useAuth } from "../utils/useAuth";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loginMutation] = useMutation(LOGIN_MUTATION);
+  const { login } = useAuth();
+  const router = useRouter();
+
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (
@@ -32,8 +42,20 @@ export default function LoginForm() {
       password: "",
     },
     validationSchema: LoginSchema,
-    onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
+    onSubmit: async (values) => {
+      await loginMutation({
+        variables: {
+          email: values.email,
+          password: values.password
+        },
+        onCompleted: (data) => {
+          login(data.tokenAuth.token)
+          router.push('/')
+        },
+        onError: (error) => {
+          setError(error.message);
+        }
+      })
     },
   });
 
@@ -47,6 +69,9 @@ export default function LoginForm() {
         spacing={3}
         sx={{ py: "1rem" }}
       >
+        {error && <Grid item>
+          <Alert severity="error">{error}</Alert>
+        </Grid>}
         <Grid item>
           <TextField
             sx={{ width: { xs: "12rem", sm: "15rem" } }}
@@ -101,7 +126,7 @@ export default function LoginForm() {
           </Button>
         </Grid>
         <Grid item>
-          <Link href="/createaccount">Don't have an account?</Link>
+          <Link href="/createaccount">Don&apos;t have an account?</Link>
         </Grid>
       </Grid>
     </form>

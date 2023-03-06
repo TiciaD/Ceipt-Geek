@@ -9,15 +9,22 @@ import {
   InputLabel,
   OutlinedInput,
   TextField,
-  Link
+  Link,
+  Alert
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useFormik } from "formik";
 import { CreateAccountSchema } from "../types/schemas";
+import { useMutation } from "@apollo/client";
+import { CREATE_ACCOUNT_MUTATION } from "../graphql/mutations";
+import { useRouter } from "next/router";
 
 export default function CreateAccountForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [signup] = useMutation(CREATE_ACCOUNT_MUTATION);
+  const router = useRouter();
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (
@@ -33,8 +40,20 @@ export default function CreateAccountForm() {
       password: "",
     },
     validationSchema: CreateAccountSchema,
-    onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
+      onSubmit: async (values) => {
+        await signup({
+          variables: {
+            username: values.username,
+            email: values.email,
+            password: values.password
+          },
+        onCompleted: () => {
+          router.push('/login')
+        },
+        onError: (error) => {
+          setError(error.message);
+        }
+      })
     },
   });
 
@@ -48,6 +67,9 @@ export default function CreateAccountForm() {
         spacing={3}
         sx={{ py: "1rem" }}
       >
+        {error && <Grid item>
+          <Alert severity="error">{error}</Alert>
+        </Grid>}
         <Grid item>
           <TextField
             sx={{ width: { xs: "12rem", sm: "15rem" } }}
