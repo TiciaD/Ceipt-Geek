@@ -53,12 +53,14 @@ class Receipt(models.Model):
             return f"{self.date}"
         
     def image_public_id(self):
-        # Return the public ID of the uploaded image
-        return self.receipt_image.public_id
+        if self.receipt_image:
+            # Return the public ID of the uploaded image
+            return self.receipt_image.public_id
 
     def image_url(self):
-        # Generate a Cloudinary URL to the image
-        return self.receipt_image.url
+        if self.receipt_image:
+            # Generate a Cloudinary URL to the image
+            return self.receipt_image.url
 
 
 class Tag(models.Model):

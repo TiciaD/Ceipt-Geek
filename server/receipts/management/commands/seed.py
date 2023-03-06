@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand
 import random
 import logging
 import os
+import cloudinary.uploader
 
 from django.contrib.auth import get_user_model
 from receipts.models import Receipt, Tag
@@ -59,7 +60,14 @@ class Command(BaseCommand):
 def clear_data():
     """Deletes all data from the database"""
     logger.info("Deleting all data from the database")
-    Receipt.objects.all().delete()
+
+    receipts = Receipt.objects.all()
+    for receipt in receipts:
+        if receipt.receipt_image:
+            public_id = receipt.image_public_id()
+            cloudinary.uploader.delete(public_id)
+        receipt.delete()
+
     Tag.objects.all().delete()
     User.objects.all().delete()
 
