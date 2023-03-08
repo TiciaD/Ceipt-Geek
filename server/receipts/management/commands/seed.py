@@ -9,9 +9,8 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from receipts.models import Receipt, Tag
 from datetime import datetime, timedelta
-from django.core.files import File
 from receipts.choices import EXPENSE_OPTIONS
-from cloudinary.models import CloudinaryResource
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 # provides data logging for the script. __name__ ties the logger to this specific
 # script which is useful if there are multiple loggers in different locations.
@@ -67,7 +66,6 @@ def clear_data():
     for receipt in receipts:
         if receipt.receipt_image:
             public_id = receipt.image_public_id()
-            print(public_id)
             cloudinary.uploader.destroy(public_id)
         receipt.delete()
 
@@ -104,19 +102,11 @@ def create_receipt():
     # Get random receipt image
     if os.path.exists('test_images'):
         img_name = random.choice(os.listdir('test_images'))
-        with open(f'test_images/{img_name}', 'rb') as image_file:
-            file = image_file
-            image_type = imghdr.what(None, file.read())
-            file.seek(0)
-            resource = CloudinaryResource(
-            type='upload',
-            resource_type='image',
-            format=image_type,
-            file=image_file,
-        )
+        with open(f'test_images/{img_name}', 'rb') as f:
+            image_file = SimpleUploadedFile(f.name, f.read(), content_type='image/jpeg')
 
     # Create receipt
-    receipt = Receipt(
+    receipt = Receipt.objects.create(
         store_name=store_name,
         date=date,
         expense=expense,
@@ -124,10 +114,8 @@ def create_receipt():
         tax=tax,
         notes=note,
         user=user,
-        receipt_image=resource
+        receipt_image=image_file
     )
-
-    receipt.save()
 
     # Add tags to receipt
     for _ in range(random.randint(1, 3)):
