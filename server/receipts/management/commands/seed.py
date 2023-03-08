@@ -92,7 +92,7 @@ def create_receipt():
 
     # Generate random data
     store_name = random.choice(store_names)
-    date = start_date + timedelta(days=random.randint(0, 364))
+    date = start_date + timedelta(days=random.randint(0, 500))
     expense = random.choice(expense_options)[0]
     note = random.choice(notes)
     user = random.choice(users)
