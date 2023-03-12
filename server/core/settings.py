@@ -54,7 +54,7 @@ AUTH_USER_MODEL = 'receipts.ExtendedUser'
 
 
 GRAPHENE = {
-    'SCHEMA': 'receipts.graphql.schema.schema',
+    'SCHEMA': 'receipts.graphql.bigschema.schema',
     'MIDDLEWARE': [
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ],
@@ -66,8 +66,8 @@ GRAPHQL_JWT = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    # 'django.contrib.auth.backends.ModelBackend',
-    'graphql_jwt.backends.JSONWebTokenBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    # 'graphql_jwt.backends.JSONWebTokenBackend',
 ]
 
 MIDDLEWARE = [
