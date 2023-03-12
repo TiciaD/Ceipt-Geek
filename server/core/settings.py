@@ -14,6 +14,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 import datetime
+import cloudinary
 
 load_dotenv()
 
@@ -48,26 +49,12 @@ INSTALLED_APPS = [
     'rest_framework.pagination',
     'graphene_django',
     'graphene_file_upload',
+    'cloudinary'
 ]
 
-GRAPHENE = {
-    'SCHEMA': 'receipts.graphql.schema.schema',
-    'MIDDLEWARE': [
-        'graphql_jwt.middleware.JSONWebTokenMiddleware',
-    ],
-}
-
-GRAPHQL_JWT = {
-    'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY'),
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
-}
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'graphql_jwt.backends.JSONWebTokenBackend',
-]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -75,7 +62,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'graphql_jwt.decorators.jwt_cookie',
 ]
@@ -116,6 +102,35 @@ DATABASES = {
     }
 }
 
+# Cloudinary Config
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET'),
+    secure=True
+)
+
+#  Graphene
+
+GRAPHENE = {
+    'SCHEMA': 'receipts.graphql.schema.schema',
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
+}
+
+# Authentication
+
+GRAPHQL_JWT = {
+    'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY'),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
+}
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'graphql_jwt.backends.JSONWebTokenBackend',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -180,10 +195,15 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+MEDIA_URL = '/uploads/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CORS settings
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -216,11 +236,12 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 CSRF_TRUSTED_ORIGINS = ['https://*.gitpod.io']
 
-MEDIA_URL = '/uploads/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
+# REST framework filters
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
+
+# Extended User model
 
 AUTH_USER_MODEL = 'receipts.ExtendedUser'

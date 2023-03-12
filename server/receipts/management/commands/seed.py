@@ -1,14 +1,16 @@
-from decimal import Decimal
-from django.core.management.base import BaseCommand
+import imghdr
 import random
 import logging
 import os
+import cloudinary.uploader
 
+from decimal import Decimal
+from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from receipts.models import Receipt, Tag
 from datetime import datetime, timedelta
-from django.core.files import File
 from receipts.choices import EXPENSE_OPTIONS
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 # provides data logging for the script. __name__ ties the logger to this specific
 # script which is useful if there are multiple loggers in different locations.
@@ -27,7 +29,7 @@ User = get_user_model()
 # --mode=clear will instead delete all data from the database without seeding data.
 # --num_receipts specifies the number of receipts to be created.
 # For example, --num_receipts=10 will seed the database with 10 receipts.
-# By default --num_receipts=50.
+# By default --num_receipts=20.
 
 """ Clear all data from the database then seeds data """
 MODE_REFRESH = 'refresh'
@@ -42,7 +44,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--mode', type=str, default='refresh', help="Mode")
         parser.add_argument('--num_receipts', type=int,
-                            default=50, help='Number of receipts to generate')
+                            default=20, help='Number of receipts to generate')
 
     def handle(self, *args, **options):
         mode = options['mode']
@@ -59,7 +61,14 @@ class Command(BaseCommand):
 def clear_data():
     """Deletes all data from the database"""
     logger.info("Deleting all data from the database")
-    Receipt.objects.all().delete()
+
+    receipts = Receipt.objects.all()
+    for receipt in receipts:
+        if receipt.receipt_image:
+            public_id = receipt.image_public_id()
+            cloudinary.uploader.destroy(public_id)
+        receipt.delete()
+
     Tag.objects.all().delete()
     User.objects.all().delete()
 
@@ -83,12 +92,18 @@ def create_receipt():
 
     # Generate random data
     store_name = random.choice(store_names)
-    date = start_date + timedelta(days=random.randint(0, 364))
+    date = start_date + timedelta(days=random.randint(0, 500))
     expense = random.choice(expense_options)[0]
     note = random.choice(notes)
     user = random.choice(users)
     cost = Decimal(str(random.uniform(0, 100))).quantize(Decimal('0.01'))
     tax = Decimal(str(random.uniform(0, 0.99))).quantize(Decimal('0.01'))
+
+    # Get random receipt image
+    if os.path.exists('test_images'):
+        img_name = random.choice(os.listdir('test_images'))
+        with open(f'test_images/{img_name}', 'rb') as f:
+            image_file = SimpleUploadedFile(f.name, f.read(), content_type='image/jpeg')
 
     # Create receipt
     receipt = Receipt.objects.create(
@@ -98,7 +113,8 @@ def create_receipt():
         cost=cost,
         tax=tax,
         notes=note,
-        user=user
+        user=user,
+        receipt_image=image_file
     )
 
     # Add tags to receipt
@@ -107,12 +123,6 @@ def create_receipt():
             tag_name=random.choice(tags)
         )[0]
         receipt.tags.add(tag)
-
-    # Add receipt image
-    if os.path.exists('test_images'):
-        img_name = random.choice(os.listdir('test_images'))
-        with open(f'test_images/{img_name}', 'rb') as f:
-            receipt.receipt_image.save(img_name, File(f), save=True)
 
     logger.info("{} receipt created.".format(receipt))
 
