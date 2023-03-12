@@ -27,13 +27,6 @@ def convert_field_to_string(field, registry=None):
     return graphene.String()
 
 
-def filter_queryset(qs: QuerySet, condition, error_msg: str) -> QuerySet:
-    filtered_qs = qs.filter(**condition)
-    if not filtered_qs.exists():
-        raise GraphQLError(error_msg)
-    return filtered_qs
-
-
 class ReceiptType(DjangoObjectType):
     class Meta:
         fields = "__all__"
@@ -71,35 +64,46 @@ class Query(ObjectType):
     def resolve_receipt(self, info, id):
         try:
             return Receipt.objects.get(pk=id)
-        except:
-            return GraphQLError(f'No receipt with id: {id} found.')
+        except Receipt.DoesNotExist:
+            raise GraphQLError(f'No receipt with id: {id} found.')
 
     def resolve_all_receipts(self, info, **kwargs):
-        try:
-            return Receipt.objects.all()
-        except:
-            return GraphQLError('No receipts found.')
+        receipts = Receipt.objects.all()
+        if not receipts.exists():
+            raise GraphQLError('No receipts found.')
+        return receipts
 
     def resolve_all_receipts_by_user(self, info, user_id):
         try:
             user = get_user_model().objects.get(pk=user_id)
-        except:
-            return GraphQLError(f'No user with user id: {user_id} found.')
+        except get_user_model().DoesNotExist:
+            raise GraphQLError(
+                f'No user with user id: {user_id} found. Could not query for receipts belonging to a user that does not exist.'
+            )
 
         receipts = Receipt.objects.filter(user=user)
+        if not receipts.exists():
+            raise GraphQLError(
+                f'No receipts found for user with user id: {user_id}.'
+            )
+        return receipts
 
-        if receipts:
-            return receipts
-        else:
-            return GraphQLError(f'No receipts found for user with user id: {user_id}.')
+    @staticmethod
+    def filter_queryset(qs: QuerySet, condition) -> QuerySet:
+        filtered_qs = qs.filter(**condition)
+        if not filtered_qs.exists():
+            raise GraphQLError('No receipts found matching filtered fields.')
+
+        return filtered_qs
 
     def resolve_filtered_receipts(self, info, **kwargs):
         if not kwargs:
-            return GraphQLError('Please provide at least one field to filter by. Fields include: userId, storeName, expense, dateGte, dateLte, costGte, costLte, notes, and tags')
+            raise GraphQLError(
+                'Please provide at least one field to filter by. Fields include: userId, storeName, expense, dateGte, dateLte, costGte, costLte, notes, and tags')
 
         queryset = Receipt.objects.all()
-        if not queryset:
-            return GraphQLError('No receipts found in the database.')
+        if not queryset.exists():
+            raise GraphQLError('No receipts found in the database.')
 
         user_id = kwargs.get('user_id')
         store_name = kwargs.get('store_name')
@@ -118,96 +122,86 @@ class Query(ObjectType):
             try:
                 user = get_user_model().objects.get(pk=user_id)
                 queryset = queryset.filter(user=user)
-            except:
-                raise GraphQLError(f"No user found with id {user_id}")
+            except get_user_model().DoesNotExist:
+                raise GraphQLError(
+                    f"No user found with id {user_id}. Could not filter receipts belonging to a user that does not exist.")
 
         if store_name:
-            queryset = filter_queryset(
-                queryset, 
+            queryset = Query.filter_queryset(
+                queryset,
                 {'store_name__icontains': store_name},
-                'No receipts found with the specified store name.'
             )
 
         if expense:
-            queryset = filter_queryset(
-                queryset, 
-                {'expense': expense}, 
-                'No receipts found with the specified expense.'
+            queryset = Query.filter_queryset(
+                queryset,
+                {'expense': expense},
             )
 
         if date_gte:
-            queryset = filter_queryset(
-                queryset, 
-                {'date__gte': date_gte}, 
-                'No receipts found with a date greater than or equal to the specified date.'
+            queryset = Query.filter_queryset(
+                queryset,
+                {'date__gte': date_gte},
             )
 
         if date_lte:
-            queryset = filter_queryset(
-                queryset, 
-                {'date__lte': date_lte}, 
-                'No receipts found with a date less than or equal to the specified date.'
+            queryset = Query.filter_queryset(
+                queryset,
+                {'date__lte': date_lte},
             )
 
         if cost_gte:
-            queryset = filter_queryset(
-                queryset, 
-                {'cost__gte': cost_gte}, 
-                'No receipts found with a cost greater than or equal to the specified cost.'
+            queryset = Query.filter_queryset(
+                queryset,
+                {'cost__gte': cost_gte},
             )
 
         if cost_lte:
-            queryset = filter_queryset(
-                queryset, 
-                {'cost__lte': cost_lte}, 
-                'No receipts found with a cost less than or equal to the specified cost.'
+            queryset = Query.filter_queryset(
+                queryset,
+                {'cost__lte': cost_lte},
             )
 
         if tax_gte:
-            queryset = filter_queryset(
-                queryset, 
-                {'tax__gte': tax_gte}, 
-                'No receipts found with a tax greater than or equal to the specified tax.'
+            queryset = Query.filter_queryset(
+                queryset,
+                {'tax__gte': tax_gte},
             )
 
         if tax_lte:
-            queryset = filter_queryset(
-                queryset, 
-                {'tax__lte': tax_lte}, 
-                'No receipts found with a tax less than or equal to the specified tax.'
+            queryset = Query.filter_queryset(
+                queryset,
+                {'tax__lte': tax_lte},
             )
 
-        if notes:
-            notes = notes.split()
-            query = reduce(
-                operator.or_, 
-                (Q(notes__icontains=note) for note in notes)
-            )
-            queryset = filter_queryset(
-                queryset, 
-                {'query': query}, 
-                'No receipts found with the specified notes.'
-            )
+        # if notes:
+        #     notes = notes.split()
+        #     query = reduce(
+        #         operator.or_,
+        #         (Q(notes__icontains=note) for note in notes)
+        #     )
+        #     queryset = Query.filter_queryset(
+        #         queryset,
+        #         {'query': query},
+        #     )
 
-        if tags_contains_any:
-            tags = tags_contains_any.split()
-            queryset = filter_queryset(
-                queryset, 
-                {'tags__tag_name__in': tags}, 
-                'No receipts found with the specified tags.'
-            )
+        # if tags_contains_any:
+        #     tags = tags_contains_any.split()
+        #     queryset = Query.filter_queryset(
+        #         queryset,
+        #         {'tags__tag_name__in': tags},
+        #     )
 
-        if tags_contains_all:
-            tags = tags_contains_all.split()
-            query = reduce(
-                operator.and_, 
-                (Q(tags__tag_name__icontains=tag) for tag in tags)
-            )
-            queryset = filter_queryset(
-                queryset, 
-                {'query': query}, 
-                'No receipts found with all of the specified tags.'
-            )
+        # if tags_contains_all:
+        #     tags = tags_contains_all.split()
+        #     query = reduce(
+        #         operator.and_,
+        #         (Q(tags__tag_name__icontains=tag) for tag in tags)
+        #     )
+        #     queryset = Query.filter_queryset(
+        #         queryset,
+        #         {'query': query},
+        #     )
 
         return queryset
 
