@@ -10,24 +10,21 @@ import {
   OutlinedInput,
   TextField,
   Link,
-  Alert,
+  Alert
 } from "@mui/material";
-import { useFormik } from "formik";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { LoginSchema } from "../types/schemas";
-import { LOGIN_MUTATION } from "../graphql/mutations";
+import { useFormik } from "formik";
+import { CreateAccountSchema } from "../types/schemas";
 import { useMutation } from "@apollo/client";
+import { CREATE_ACCOUNT_MUTATION } from "../graphql/mutations";
 import { useRouter } from "next/router";
-import { useAuth } from "../utils/useAuth";
 
-export default function LoginForm() {
+export default function CreateAccountForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loginMutation] = useMutation(LOGIN_MUTATION);
-  const { login } = useAuth();
+  const [signup] = useMutation(CREATE_ACCOUNT_MUTATION);
   const router = useRouter();
-
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (
@@ -38,19 +35,20 @@ export default function LoginForm() {
 
   const formik = useFormik({
     initialValues: {
+      username: "",
       email: "",
       password: "",
     },
-    validationSchema: LoginSchema,
-    onSubmit: async (values) => {
-      await loginMutation({
-        variables: {
-          email: values.email,
-          password: values.password
-        },
-        onCompleted: (data) => {
-          login(data.tokenAuth.token)
-          router.push('/')
+    validationSchema: CreateAccountSchema,
+      onSubmit: async (values) => {
+        await signup({
+          variables: {
+            username: values.username,
+            email: values.email,
+            password: values.password
+          },
+        onCompleted: () => {
+          router.push('/login')
         },
         onError: (error) => {
           setError(error.message);
@@ -75,6 +73,18 @@ export default function LoginForm() {
         <Grid item>
           <TextField
             sx={{ width: { xs: "12rem", sm: "15rem" } }}
+            id="username"
+            name="username"
+            label="Username"
+            value={formik.values.username}
+            onChange={formik.handleChange}
+            error={formik.touched.username && Boolean(formik.errors.username)}
+            helperText={formik.touched.username && formik.errors.username}
+          />
+        </Grid>
+        <Grid item>
+          <TextField
+            sx={{ width: { xs: "12rem", sm: "15rem" } }}
             id="email"
             name="email"
             label="Email"
@@ -84,7 +94,7 @@ export default function LoginForm() {
             helperText={formik.touched.email && formik.errors.email}
           />
         </Grid>
-        <Grid item xs={8}>
+        <Grid item>
           <FormControl variant="outlined">
             <InputLabel htmlFor="password">Password</InputLabel>
             <OutlinedInput
@@ -112,7 +122,7 @@ export default function LoginForm() {
             {formik.touched.password && formik.errors.password && (
               <FormHelperText
                 error
-                id="login-error"
+                id="create-account-error"
                 sx={{ mx: 0, width: { xs: "12rem", sm: "15rem" } }}
               >
                 {formik.errors.password}
@@ -122,11 +132,11 @@ export default function LoginForm() {
         </Grid>
         <Grid item xs={8}>
           <Button type="submit" variant="contained" size="large">
-            LOGIN
+            SIGN UP
           </Button>
         </Grid>
         <Grid item>
-          <Link href="/createaccount">Don&apos;t have an account?</Link>
+            <Link href='/login'>Already have an account?</Link>
         </Grid>
       </Grid>
     </form>

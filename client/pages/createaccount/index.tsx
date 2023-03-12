@@ -1,7 +1,7 @@
 import { Card, CardContent, Typography } from "@mui/material";
-import LoginForm from "../../forms/LoginForm";
+import CreateAccountForm from "../../forms/CreateAccountForm";
 
-export default function Login() {
+export default function CreateAccount() {
   return (
     <Card sx={{ minWidth: 275, padding: "2rem" }}>
       <CardContent>
@@ -10,9 +10,9 @@ export default function Login() {
           sx={{ fontWeight: "bold", textAlign: "center" }}
           gutterBottom
         >
-          Sign In to Your Account
+          Create an Account
         </Typography>
-        <LoginForm />
+        <CreateAccountForm />
       </CardContent>
     </Card>
   );
