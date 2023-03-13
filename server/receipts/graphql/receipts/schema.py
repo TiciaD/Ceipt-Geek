@@ -1,12 +1,10 @@
 import graphene
 import cloudinary.uploader
-import operator
 
 from ...models import Receipt
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from django.db.models import Q
-from functools import reduce
 
 from cloudinary.models import CloudinaryField
 
@@ -174,34 +172,36 @@ class Query(ObjectType):
                 {'tax__lte': tax_lte},
             )
 
-        # if notes:
-        #     notes = notes.split()
-        #     query = reduce(
-        #         operator.or_,
-        #         (Q(notes__icontains=note) for note in notes)
-        #     )
-        #     queryset = Query.filter_queryset(
-        #         queryset,
-        #         {'query': query},
-        #     )
+        if notes:
+            notes = [note.strip() for note in notes.split(',')]
+            q_objects = Q()
+            for note in notes:
+                q_objects |= Q(notes__icontains=note)
+            queryset = queryset.filter(q_objects).distinct()
+            if not queryset.exists():
+                raise GraphQLError(
+                    'No receipts found matching filtered fields.'
+                )
 
-        # if tags_contains_any:
-        #     tags = tags_contains_any.split()
-        #     queryset = Query.filter_queryset(
-        #         queryset,
-        #         {'tags__tag_name__in': tags},
-        #     )
+        if tags_contains_any:
+            tags = [tag.strip() for tag in tags_contains_any.split(",")]
+            q_objects = Q()
+            for tag in tags:
+                q_objects |= Q(tags__tag_name__icontains=tag)
+            queryset = queryset.filter(q_objects).distinct()
+            if not queryset.exists():
+                raise GraphQLError(
+                    'No receipts found matching filtered fields.'
+                )
 
-        # if tags_contains_all:
-        #     tags = tags_contains_all.split()
-        #     query = reduce(
-        #         operator.and_,
-        #         (Q(tags__tag_name__icontains=tag) for tag in tags)
-        #     )
-        #     queryset = Query.filter_queryset(
-        #         queryset,
-        #         {'query': query},
-        #     )
+        if tags_contains_all:
+            tags = [tag.strip() for tag in tags_contains_all.split(',')]
+            for tag in tags:
+                queryset = queryset.filter(tags__tag_name__icontains=tag)
+            if not queryset.exists():
+                raise GraphQLError(
+                    'No receipts found matching filtered fields.'
+                )
 
         return queryset
 
@@ -223,7 +223,6 @@ class CreateReceipt(graphene.Mutation):
 
     receipt = graphene.Field(ReceiptType)
 
-    @staticmethod
     def mutate(root, info, receipt_data=None):
         receipt_instance = Receipt(
             user_id=receipt_data.user_id,
@@ -248,7 +247,6 @@ class UpdateReceipt(graphene.Mutation):
 
     receipt = graphene.Field(ReceiptType)
 
-    @staticmethod
     def mutate(root, info, receipt_data=None):
 
         receipt_instance = Receipt.objects.get(pk=receipt_data.id)
@@ -279,7 +277,6 @@ class DeleteReceipt(graphene.Mutation):
     success = graphene.Boolean()
     receipt = graphene.Field(lambda: ReceiptType)
 
-    @staticmethod
     def mutate(root, info, id):
         try:
             receipt = Receipt.objects.get(id=id)

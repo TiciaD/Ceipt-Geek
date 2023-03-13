@@ -6,10 +6,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from graphql import GraphQLError
 
+User = get_user_model()
 
 class UserType(DjangoObjectType):
     class Meta:
-        model = get_user_model()
+        model = User
 
 
 class UserQuery(graphene.ObjectType):
@@ -17,10 +18,10 @@ class UserQuery(graphene.ObjectType):
     users = graphene.List(UserType)
 
     def resolve_user(self, info, id):
-        return get_user_model().objects.get(pk=id)
+        return User.objects.get(pk=id)
 
     def resolve_users(self, info, **kwargs):
-        return get_user_model().objects.all()
+        return User.objects.all()
 
 
 class CreateUser(graphene.Mutation):
@@ -38,15 +39,19 @@ class CreateUser(graphene.Mutation):
         except Exception as e:
             return GraphQLError(str(e))
 
-        user = get_user_model()(
+        # Check if a user with the given username or email already exists
+        if User.objects.filter(username=username).exists():
+            raise GraphQLError('Username already taken')
+        if User.objects.filter(email=email).exists():
+            raise GraphQLError('Email already taken')
+
+        user = User(
             username=username,
             email=email,
         )
         user.set_password(password)
-        try:
-            user.save()
-        except Exception as e:
-            print(e)
+        user.save()
+
         return CreateUser(user=user)
 
 
@@ -60,7 +65,7 @@ class UpdateUser(graphene.Mutation):
         email = graphene.String()
 
     def mutate(self, info, id, username=None, password=None, email=None):
-        user = get_user_model().objects.get(pk=id)
+        user = User.objects.get(pk=id)
 
         if username:
             user.username = username
@@ -84,10 +89,10 @@ class DeleteUser(graphene.Mutation):
     @staticmethod
     def mutate(root, info, id):
         try:
-            user = get_user_model().objects.get(id=id)
+            user = User.objects.get(id=id)
             user.delete()
             return DeleteUser(success=True, user=user)
-        except get_user_model().DoesNotExist:
+        except User.DoesNotExist:
             return DeleteUser(success=False, user=None)
 
 
