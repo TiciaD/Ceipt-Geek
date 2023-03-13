@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .choices import EXPENSE_OPTIONS
+from cloudinary.models import CloudinaryField
 
 from django.contrib.auth import get_user_model
 
@@ -31,11 +32,9 @@ class Receipt(models.Model):
         blank=True, 
         null=True
     )
-    receipt_image = models.ImageField(
-        upload_to='images', 
-        blank=True, 
-        null=True
-    )
+    # example of setting consistent image parameters
+    # transformation={"width": 500, "height": 500, "crop": "fill"}
+    receipt_image = CloudinaryField('image', blank=True, null=True)
     notes = models.TextField(
         null=True,
         blank=True,
@@ -52,6 +51,16 @@ class Receipt(models.Model):
             return f"{self.store_name} - {self.date}"
         else:
             return f"{self.date}"
+        
+    def image_public_id(self):
+        if self.receipt_image:
+            # Return the public ID of the uploaded image
+            return self.receipt_image.public_id
+
+    def image_url(self):
+        if self.receipt_image:
+            # Generate a Cloudinary URL to the image
+            return self.receipt_image.url
 
 
 class Tag(models.Model):
