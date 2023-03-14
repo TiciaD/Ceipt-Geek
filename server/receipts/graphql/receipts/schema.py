@@ -1,10 +1,11 @@
 import graphene
 import cloudinary.uploader
 
-from ...models import Receipt
+from ...models import Receipt, Tag
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from django.db.models import Q
+from decimal import Decimal
 
 from cloudinary.models import CloudinaryField
 
@@ -25,7 +26,24 @@ def convert_field_to_string(field, registry=None):
     return graphene.String()
 
 
+class DecimalType(graphene.Scalar):
+    @staticmethod
+    def serialize(decimal):
+        return float(decimal)
+
+    @staticmethod
+    def parse_literal(node):
+        return Decimal(node.value)
+
+    @staticmethod
+    def parse_value(value):
+        return Decimal(value)
+
+
 class ReceiptType(DjangoObjectType):
+    cost = DecimalType()
+    tax = DecimalType()
+
     class Meta:
         fields = "__all__"
         model = Receipt
@@ -34,7 +52,7 @@ class ReceiptType(DjangoObjectType):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
-
+    
 
 class Query(ObjectType):
     receipt = graphene.Field(ReceiptType, id=graphene.ID(required=True))
@@ -50,13 +68,13 @@ class Query(ObjectType):
         expense=graphene.String(),
         date_gte=graphene.Date(),
         date_lte=graphene.Date(),
-        cost_gte=graphene.Decimal(),
-        cost_lte=graphene.Decimal(),
-        tax_gte=graphene.Decimal(),
-        tax_lte=graphene.Decimal(),
+        cost_gte=DecimalType(),
+        cost_lte=DecimalType(),
+        tax_gte=DecimalType(),
+        tax_lte=DecimalType(),
         notes=graphene.String(),
-        tags_contains_any=graphene.String(),
-        tags_contains_all=graphene.String(),
+        tags_contains_any=graphene.List(graphene.String),
+        tags_contains_all=graphene.List(graphene.String),
     )
 
     def resolve_receipt(self, info, id):
@@ -125,12 +143,14 @@ class Query(ObjectType):
                     f"No user found with id {user_id}. Could not filter receipts belonging to a user that does not exist.")
 
         if store_name:
+            store_name = store_name.strip()
             queryset = Query.filter_queryset(
                 queryset,
                 {'store_name__icontains': store_name},
             )
 
         if expense:
+            expense = expense.strip()
             queryset = Query.filter_queryset(
                 queryset,
                 {'expense': expense},
@@ -173,18 +193,24 @@ class Query(ObjectType):
             )
 
         if notes:
-            notes = [note.strip() for note in notes.split(',')]
-            q_objects = Q()
-            for note in notes:
-                q_objects |= Q(notes__icontains=note)
-            queryset = queryset.filter(q_objects).distinct()
-            if not queryset.exists():
-                raise GraphQLError(
-                    'No receipts found matching filtered fields.'
-                )
+            notes = notes.strip()
+            queryset = Query.filter_queryset(
+                queryset,
+                {'notes__icontains': notes},
+            )
+
+            # notes = [note.strip() for note in notes.split(',')]
+            # q_objects = Q()
+            # for note in notes:
+            #     q_objects |= Q(notes__icontains=note)
+            # queryset = queryset.filter(q_objects).distinct()
+            # if not queryset.exists():
+            #     raise GraphQLError(
+            #         'No receipts found matching filtered fields.'
+            #     )
 
         if tags_contains_any:
-            tags = [tag.strip() for tag in tags_contains_any.split(",")]
+            tags = [tag.strip() for tag in tags_contains_any]
             q_objects = Q()
             for tag in tags:
                 q_objects |= Q(tags__tag_name__icontains=tag)
@@ -195,7 +221,7 @@ class Query(ObjectType):
                 )
 
         if tags_contains_all:
-            tags = [tag.strip() for tag in tags_contains_all.split(',')]
+            tags = [tag.strip() for tag in tags_contains_all]
             for tag in tags:
                 queryset = queryset.filter(tags__tag_name__icontains=tag)
             if not queryset.exists():
@@ -211,10 +237,11 @@ class ReceiptInput(graphene.InputObjectType):
     store_name = graphene.String()
     date = graphene.Date()
     expense = graphene.String()
-    tax = graphene.Decimal()
-    cost = graphene.Decimal()
+    tax = DecimalType()
+    cost = DecimalType()
     notes = graphene.String()
-    receipt_image = Upload(required=False)
+    tags = graphene.List(graphene.String)
+    receipt_image = Upload()
 
 
 class CreateReceipt(graphene.Mutation):
@@ -236,8 +263,15 @@ class CreateReceipt(graphene.Mutation):
         )
         try:
             receipt_instance.save()
+            if receipt_data.tags:
+                input_tags = [tag.strip() for tag in receipt_data.tags]
+                for input_tag in input_tags:
+                    tag = Tag.objects.get_or_create(
+                        tag_name = input_tag
+                    )[0]
+                    receipt_instance.tags.add(tag)
         except Exception as e:
-            print(e)
+            raise GraphQLError(e)
         return CreateReceipt(receipt=receipt_instance)
 
 
