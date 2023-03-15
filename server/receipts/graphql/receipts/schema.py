@@ -16,8 +16,6 @@ from graphene_django.converter import convert_django_field
 
 
 # Register a custom converter for CloudinaryField
-
-
 @convert_django_field.register(CloudinaryField)
 def convert_field_to_string(field, registry=None):
     """
@@ -26,6 +24,7 @@ def convert_field_to_string(field, registry=None):
     return graphene.String()
 
 
+# Custom graphene scalar that allows both string and number decimal inputs and outputs decimals as numbers
 class DecimalType(graphene.Scalar):
     @staticmethod
     def serialize(decimal):
@@ -52,7 +51,7 @@ class ReceiptType(DjangoObjectType):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
-    
+
 
 class Query(ObjectType):
     receipt = graphene.Field(ReceiptType, id=graphene.ID(required=True))
@@ -233,26 +232,31 @@ class Query(ObjectType):
 
 
 class ReceiptInput(graphene.InputObjectType):
-    user_id = graphene.ID()
-    store_name = graphene.String()
-    date = graphene.Date()
-    expense = graphene.String()
-    tax = DecimalType()
-    cost = DecimalType()
-    notes = graphene.String()
-    tags = graphene.List(graphene.String)
-    receipt_image = Upload()
+    store_name = graphene.String(required=True)
+    date = graphene.Date(required=True)
+    expense = graphene.String(required=True)
+    tax = DecimalType(required=True)
+    cost = DecimalType(required=True)
+    notes = graphene.String(required=False)
+    tags = graphene.List(graphene.String, required=False)
+    receipt_image = Upload(required=False)
 
 
 class CreateReceipt(graphene.Mutation):
     class Arguments:
+        user_id = graphene.ID(required=True)
         receipt_data = ReceiptInput(required=True)
 
     receipt = graphene.Field(ReceiptType)
 
-    def mutate(root, info, receipt_data=None):
+    def mutate(root, info, receipt_data=None, user_id=None):
+        try:
+            user = get_user_model().objects.get(pk=user_id)
+        except get_user_model().DoesNotExist:
+            raise GraphQLError(f'User with id: {user_id} does not exist. Could not create receipt for user that does not exist.')
+
         receipt_instance = Receipt(
-            user_id=receipt_data.user_id,
+            user=user,
             store_name=receipt_data.store_name,
             date=receipt_data.date,
             expense=receipt_data.expense,
@@ -267,7 +271,7 @@ class CreateReceipt(graphene.Mutation):
                 input_tags = [tag.strip() for tag in receipt_data.tags]
                 for input_tag in input_tags:
                     tag = Tag.objects.get_or_create(
-                        tag_name = input_tag
+                        tag_name=input_tag
                     )[0]
                     receipt_instance.tags.add(tag)
         except Exception as e:
@@ -277,50 +281,64 @@ class CreateReceipt(graphene.Mutation):
 
 class UpdateReceipt(graphene.Mutation):
     class Arguments:
+        receipt_id = graphene.ID(required=True)
         receipt_data = ReceiptInput(required=True)
 
     receipt = graphene.Field(ReceiptType)
 
-    def mutate(root, info, receipt_data=None):
+    def mutate(root, info, receipt_data=None, receipt_id=None):
+        try:
+            receipt_instance = Receipt.objects.get(pk=receipt_id)
+        except Receipt.DoesNotExist:
+            raise GraphQLError(
+                f'Receipt with id: {receipt_id} does not exist.')
 
-        receipt_instance = Receipt.objects.get(pk=receipt_data.id)
-
-        if receipt_instance:
-            receipt_instance.store_name = receipt_data.store_name
-            receipt_instance.date = receipt_data.date
-            receipt_instance.expense = receipt_data.expense
-            receipt_instance.tax = receipt_data.tax
-            receipt_instance.cost = receipt_data.cost
-            receipt_instance.notes = receipt_data.notes
-            if receipt_instance.receipt_image:
-                if receipt_data.receipt_image:
-                    public_id = receipt_instance.image_public_id()
-                    cloudinary.uploader.destroy(public_id)
-                receipt_instance.receipt_image = receipt_data.receipt_image
-            try:
-                receipt_instance.save()
-            except Exception as e:
-                print(e)
+        receipt_instance.store_name = receipt_data.store_name
+        receipt_instance.date = receipt_data.date
+        receipt_instance.expense = receipt_data.expense
+        receipt_instance.tax = receipt_data.tax
+        receipt_instance.cost = receipt_data.cost
+        receipt_instance.notes = receipt_data.notes
+        if receipt_instance.receipt_image:
+            public_id = receipt_instance.image_public_id()
+            cloudinary.uploader.destroy(public_id)
+        receipt_instance.receipt_image = receipt_data.receipt_image
+        try:
+            tag_ids = []
+            if receipt_data.tags:
+                tags = [tag.strip() for tag in receipt_data.tags]
+                for tag in tags:
+                    tag_id = Tag.objects.get_or_create(tag_name=tag)[0]
+                    tag_ids.append(tag_id)
+            receipt_instance.tags.set(tag_ids)
+            receipt_instance.save()
+        except Exception as e:
+            raise GraphQLError(e)
         return UpdateReceipt(receipt=receipt_instance)
+
+
+# class DeletedReceiptType(graphene.ObjectType):
+#     id = graphene.ID()
+#     store_name = graphene.String()
 
 
 class DeleteReceipt(graphene.Mutation):
     class Arguments:
-        id = graphene.ID(required=True)
+        receipt_id = graphene.ID(required=True)
 
     success = graphene.Boolean()
-    receipt = graphene.Field(lambda: ReceiptType)
 
-    def mutate(root, info, id):
+    def mutate(root, info, receipt_id):
         try:
-            receipt = Receipt.objects.get(id=id)
+            receipt = Receipt.objects.get(pk=receipt_id)
             if receipt.receipt_image:
                 public_id = receipt.image_public_id()
                 cloudinary.uploader.destroy(public_id)
             receipt.delete()
-            return DeleteReceipt(success=True, receipt=receipt)
+            return DeleteReceipt(success=True)
         except Receipt.DoesNotExist:
-            return DeleteReceipt(success=False, receipt=None)
+            raise GraphQLError(
+                f'Receipt with id: {receipt_id} does not exist.')
 
 
 class Mutation(graphene.ObjectType):
