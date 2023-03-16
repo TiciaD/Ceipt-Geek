@@ -18,8 +18,8 @@ class Receipt(models.Model):
         blank=True, 
         null=True
     )
-    date = models.DateField()
-    expense = models.CharField(max_length=80, choices=EXPENSE_OPTIONS)
+    date = models.DateField(null=True)
+    expense = models.CharField(max_length=80, choices=EXPENSE_OPTIONS, null=True)
     tax = models.DecimalField(
         max_digits=2,
         decimal_places=2,
