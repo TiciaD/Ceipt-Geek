@@ -1,18 +1,17 @@
-import graphene
-import cloudinary.uploader
-
 from ...models import Receipt, Tag
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from django.db.models import Q
 from decimal import Decimal
 
-from cloudinary.models import CloudinaryField
-
+import graphene
 from graphql import GraphQLError
 from graphene_django.types import DjangoObjectType, ObjectType
 from graphene_file_upload.scalars import Upload
 from graphene_django.converter import convert_django_field
+
+import cloudinary.uploader
+from cloudinary.models import CloudinaryField
 
 
 # Register a custom converter for CloudinaryField
@@ -253,7 +252,8 @@ class CreateReceipt(graphene.Mutation):
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
-            raise GraphQLError(f'User with id: {user_id} does not exist. Could not create receipt for user that does not exist.')
+            raise GraphQLError(
+                f'User with id: {user_id} does not exist. Could not create receipt for user that does not exist.')
 
         receipt_instance = Receipt(
             user=user,
@@ -338,7 +338,8 @@ class DeleteReceipt(graphene.Mutation):
             return DeleteReceipt(success=True)
         except Receipt.DoesNotExist:
             raise GraphQLError(
-                f'Receipt with id: {receipt_id} does not exist.')
+                f'Receipt with id: {receipt_id} does not exist.'
+            )
 
 
 class Mutation(graphene.ObjectType):
