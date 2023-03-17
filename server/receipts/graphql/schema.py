@@ -16,12 +16,12 @@ import jwt as pyjwt
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.conf import settings
-from datetime import datetime, timedelta
 from django.core.validators import validate_email
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
 import re
+from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
 from decimal import Decimal
 
@@ -35,7 +35,10 @@ def login_required(func):
             raise GraphQLError('Authentication token is required')
         try:
             payload = pyjwt.decode(
-                token, settings.GRAPHQL_JWT["JWT_SECRET_KEY"], algorithms=['HS256'])
+                token, 
+                settings.GRAPHQL_JWT["JWT_SECRET_KEY"], 
+                algorithms=['HS256']
+            )
         except pyjwt.ExpiredSignatureError:
             raise GraphQLError('Token has expired')
         except pyjwt.InvalidTokenError:
@@ -127,7 +130,8 @@ class UserQuery(graphene.ObjectType):
             return user
         elif id and email:
             raise GraphQLError(
-                f"No user found with id: {id} and email: {email}")
+                f"No user found with id: {id} and email: {email}"
+            )
         elif id:
             raise GraphQLError(f"No user found with id: {id}")
         else:
@@ -634,58 +638,64 @@ class TagType(DjangoObjectType):
 
 
 class TagQuery(ObjectType):
-    tag = graphene.Field(TagType, id=graphene.Int())
-    tags = graphene.List(TagType)
+    tag = graphene.Field(TagType, id=graphene.ID(required=True))
+    all_tags = graphene.List(TagType)
 
     def resolve_tag(self, info, **kwargs):
         id = kwargs.get('id')
 
-        if id is not None:
+        try:
             return Tag.objects.get(pk=id)
+        except Tag.DoesNotExist:
+            raise GraphQLError(f'Tag with id: {id} not found.')
 
-        return None
+    def resolve_all_tags(self, info, **kwargs):
+        tags = Tag.objects.all()
+        if not tags.exists():
+            raise GraphQLError('No tags found.')
+        return tags
 
-    def resolve_tags(self, info, **kwargs):
-        return Tag.objects.all()
 
-
-class TagInput(graphene.InputObjectType):
-    id = graphene.ID()
-    tag_name = graphene.String()
+# class TagInput(graphene.InputObjectType):
+#     id = graphene.ID()
+#     tag_name = graphene.String()
 
 
 class CreateTag(graphene.Mutation):
     class Arguments:
-        tag_data = TagInput(required=True)
+        tag_name = graphene.String(required=True)
+
     tag = graphene.Field(TagType)
 
-    def mutate(root, info, tag_data=None):
+    def mutate(root, info, tag_name):
         tag_instance = Tag(
-            tag_name=tag_data.tag_name
+            tag_name
         )
         try:
             tag_instance.save()
         except Exception as e:
-            print(e)
+            raise GraphQLError(e)
         return CreateTag(tag=tag_instance)
 
 
 class UpdateTag(graphene.Mutation):
     class Arguments:
-        tag_data = TagInput(required=True)
+        id = graphene.ID(required=True)
+        tag_name = graphene.ID(required=True)
 
     tag = graphene.Field(TagType)
 
-    def mutate(root, info, tag_data=None):
+    def mutate(root, info, id, tag_name):
+        try:
+            tag_instance = Tag.objects.get(pk=id)
+        except Tag.DoesNotExist:
+            raise GraphQLError(f'Tag with id: {id} does not exist')
 
-        tag_instance = Tag.objects.get(pk=tag_data.id)
-
-        if tag_instance:
-            tag_instance.tag_name = tag_data.tag_name
+        tag_instance.tag_name = tag_name
         try:
             tag_instance.save()
         except Exception as e:
-            print(e)
+            raise GraphQLError(e)
         return UpdateTag(tag=tag_instance)
 
 
@@ -694,15 +704,14 @@ class DeleteTag(graphene.Mutation):
         id = graphene.ID(required=True)
 
     success = graphene.Boolean()
-    tag = graphene.Field(lambda: TagType)
 
     def mutate(root, info, id):
         try:
             tag = Tag.objects.get(id=id)
             tag.delete()
-            return DeleteTag(success=True, tag=tag)
+            return DeleteTag(success=True)
         except Tag.DoesNotExist:
-            return DeleteTag(success=False, tag=None)
+            raise GraphQLError(f'Tag with id: {id} does not exist')
 
 
 class Mutation(graphene.ObjectType):
