@@ -14,23 +14,17 @@ class ExtendedUser(AbstractUser):
 
 class Receipt(models.Model):
     store_name = models.CharField(
-        max_length=255, 
-        blank=True, 
-        null=True
+        max_length=255,
     )
-    date = models.DateField(null=True)
-    expense = models.CharField(max_length=80, choices=EXPENSE_OPTIONS, null=True)
+    date = models.DateField()
+    expense = models.CharField(max_length=80, choices=EXPENSE_OPTIONS)
     tax = models.DecimalField(
         max_digits=2,
         decimal_places=2,
-        blank=True,
-        null=True
     )
     cost = models.DecimalField(
         max_digits=10,
-        decimal_places=2, 
-        blank=True, 
-        null=True
+        decimal_places=2,
     )
     # example of setting consistent image parameters
     # transformation={"width": 500, "height": 500, "crop": "fill"}

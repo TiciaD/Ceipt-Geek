@@ -15,28 +15,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from receipts import views
 from django.conf.urls import include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.views.generic.base import RedirectView
-from graphene_django.views import GraphQLView
 from graphene_file_upload.django import FileUploadGraphQLView
-from receipts.graphql.schema import schema
 from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', RedirectView.as_view(url='/api')),
     path('api/', include('receipts.urls')),
-    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True))),
-    path('graphiql/', FileUploadGraphQLView.as_view(graphiql=True, schema=schema)),
+    path('graphql/', csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
 ]
 
 urlpatterns += [
     path('api/direct-auth/', include('rest_framework.urls')),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
