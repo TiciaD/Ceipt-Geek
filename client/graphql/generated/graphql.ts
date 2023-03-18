@@ -43,7 +43,6 @@ export type DeleteReceipt = {
 export type DeleteTag = {
   __typename?: 'DeleteTag';
   success?: Maybe<Scalars['Boolean']>;
-  tag?: Maybe<TagType>;
 };
 
 export type DeleteUser = {
@@ -80,12 +79,11 @@ export type Mutation = {
 
 export type MutationCreateReceiptArgs = {
   receiptData: ReceiptInput;
-  userId: Scalars['ID'];
 };
 
 
 export type MutationCreateTagArgs = {
-  tagData: TagInput;
+  tagName: Scalars['String'];
 };
 
 
@@ -106,11 +104,6 @@ export type MutationDeleteTagArgs = {
 };
 
 
-export type MutationDeleteUserArgs = {
-  id: Scalars['ID'];
-};
-
-
 export type MutationLoginArgs = {
   email: Scalars['String'];
   password: Scalars['String'];
@@ -124,13 +117,13 @@ export type MutationUpdateReceiptArgs = {
 
 
 export type MutationUpdateTagArgs = {
-  tagData: TagInput;
+  id: Scalars['ID'];
+  tagName: Scalars['ID'];
 };
 
 
 export type MutationUpdateUserArgs = {
   email?: InputMaybe<Scalars['String']>;
-  id: Scalars['Int'];
   password?: InputMaybe<Scalars['String']>;
   username?: InputMaybe<Scalars['String']>;
 };
@@ -139,17 +132,19 @@ export type Query = {
   __typename?: 'Query';
   allReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
   allReceiptsByUser?: Maybe<Array<Maybe<ReceiptType>>>;
+  allTags?: Maybe<Array<Maybe<TagType>>>;
   allUsers?: Maybe<Array<Maybe<UserType>>>;
   filteredReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
+  getUser?: Maybe<UserType>;
   receipt?: Maybe<ReceiptType>;
   tag?: Maybe<TagType>;
-  tags?: Maybe<Array<Maybe<TagType>>>;
+  totalExpenditureByDate?: Maybe<Scalars['Float']>;
   user?: Maybe<UserType>;
 };
 
 
-export type QueryAllReceiptsByUserArgs = {
-  userId: Scalars['ID'];
+export type QueryAllReceiptsArgs = {
+  userId?: InputMaybe<Scalars['ID']>;
 };
 
 
@@ -165,23 +160,28 @@ export type QueryFilteredReceiptsArgs = {
   tagsContainsAny?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   taxGte?: InputMaybe<Scalars['DecimalType']>;
   taxLte?: InputMaybe<Scalars['DecimalType']>;
-  userId?: InputMaybe<Scalars['ID']>;
+};
+
+
+export type QueryGetUserArgs = {
+  email?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['Int']>;
 };
 
 
 export type QueryReceiptArgs = {
-  id: Scalars['ID'];
+  receiptId: Scalars['ID'];
 };
 
 
 export type QueryTagArgs = {
-  id?: InputMaybe<Scalars['Int']>;
+  id: Scalars['ID'];
 };
 
 
-export type QueryUserArgs = {
-  email?: InputMaybe<Scalars['String']>;
-  id?: InputMaybe<Scalars['Int']>;
+export type QueryTotalExpenditureByDateArgs = {
+  dateGte: Scalars['Date'];
+  dateLte: Scalars['Date'];
 };
 
 export type ReceiptInput = {
@@ -257,11 +257,6 @@ export type ReceiptsReceiptExpenseChoices =
   /** Utilities */
   | 'UTILITIES';
 
-export type TagInput = {
-  id?: InputMaybe<Scalars['ID']>;
-  tagName?: InputMaybe<Scalars['String']>;
-};
-
 export type TagType = {
   __typename?: 'TagType';
   id: Scalars['ID'];
@@ -319,6 +314,19 @@ export type AuthMutationVariables = Exact<{
 
 
 export type AuthMutation = { __typename?: 'Mutation', login?: { __typename?: 'LoginMutation', token?: string | null, success?: boolean | null } | null };
+
+export type AllReceiptsByUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: Array<{ __typename?: 'ReceiptType', id: string, storeName: string, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, tags: Array<{ __typename?: 'TagType', id: string, tagName: string }> } | null> | null };
+
+export type TotalExpenditureByDateQueryVariables = Exact<{
+  dateGte: Scalars['Date'];
+  dateLte: Scalars['Date'];
+}>;
+
+
+export type TotalExpenditureByDateQuery = { __typename?: 'Query', totalExpenditureByDate?: number | null };
 
 
 export const CreateAccountDocument = gql`
@@ -398,6 +406,82 @@ export function useAuthMutation(baseOptions?: Apollo.MutationHookOptions<AuthMut
 export type AuthMutationHookResult = ReturnType<typeof useAuthMutation>;
 export type AuthMutationResult = Apollo.MutationResult<AuthMutation>;
 export type AuthMutationOptions = Apollo.BaseMutationOptions<AuthMutation, AuthMutationVariables>;
+export const AllReceiptsByUserDocument = gql`
+    query AllReceiptsByUser {
+  allReceiptsByUser {
+    id
+    storeName
+    cost
+    date
+    expense
+    tags {
+      id
+      tagName
+    }
+  }
+}
+    `;
+
+/**
+ * __useAllReceiptsByUserQuery__
+ *
+ * To run a query within a React component, call `useAllReceiptsByUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllReceiptsByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllReceiptsByUserQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAllReceiptsByUserQuery(baseOptions?: Apollo.QueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
+      }
+export function useAllReceiptsByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
+        }
+export type AllReceiptsByUserQueryHookResult = ReturnType<typeof useAllReceiptsByUserQuery>;
+export type AllReceiptsByUserLazyQueryHookResult = ReturnType<typeof useAllReceiptsByUserLazyQuery>;
+export type AllReceiptsByUserQueryResult = Apollo.QueryResult<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>;
+export const TotalExpenditureByDateDocument = gql`
+    query TotalExpenditureByDate($dateGte: Date!, $dateLte: Date!) {
+  totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
+}
+    `;
+
+/**
+ * __useTotalExpenditureByDateQuery__
+ *
+ * To run a query within a React component, call `useTotalExpenditureByDateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTotalExpenditureByDateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTotalExpenditureByDateQuery({
+ *   variables: {
+ *      dateGte: // value for 'dateGte'
+ *      dateLte: // value for 'dateLte'
+ *   },
+ * });
+ */
+export function useTotalExpenditureByDateQuery(baseOptions: Apollo.QueryHookOptions<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>(TotalExpenditureByDateDocument, options);
+      }
+export function useTotalExpenditureByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>(TotalExpenditureByDateDocument, options);
+        }
+export type TotalExpenditureByDateQueryHookResult = ReturnType<typeof useTotalExpenditureByDateQuery>;
+export type TotalExpenditureByDateLazyQueryHookResult = ReturnType<typeof useTotalExpenditureByDateLazyQuery>;
+export type TotalExpenditureByDateQueryResult = Apollo.QueryResult<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>;
 export type CreateReceiptKeySpecifier = ('receipt' | CreateReceiptKeySpecifier)[];
 export type CreateReceiptFieldPolicy = {
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>
@@ -414,10 +498,9 @@ export type DeleteReceiptKeySpecifier = ('success' | DeleteReceiptKeySpecifier)[
 export type DeleteReceiptFieldPolicy = {
 	success?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type DeleteTagKeySpecifier = ('success' | 'tag' | DeleteTagKeySpecifier)[];
+export type DeleteTagKeySpecifier = ('success' | DeleteTagKeySpecifier)[];
 export type DeleteTagFieldPolicy = {
-	success?: FieldPolicy<any> | FieldReadFunction<any>,
-	tag?: FieldPolicy<any> | FieldReadFunction<any>
+	success?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type DeleteUserKeySpecifier = ('success' | DeleteUserKeySpecifier)[];
 export type DeleteUserFieldPolicy = {
@@ -446,15 +529,17 @@ export type MutationFieldPolicy = {
 	updateTag?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateUser?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allUsers' | 'filteredReceipts' | 'receipt' | 'tag' | 'tags' | 'user' | QueryKeySpecifier)[];
+export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'filteredReceipts' | 'getUser' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
 	allReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
 	allReceiptsByUser?: FieldPolicy<any> | FieldReadFunction<any>,
+	allTags?: FieldPolicy<any> | FieldReadFunction<any>,
 	allUsers?: FieldPolicy<any> | FieldReadFunction<any>,
 	filteredReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
+	getUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>,
 	tag?: FieldPolicy<any> | FieldReadFunction<any>,
-	tags?: FieldPolicy<any> | FieldReadFunction<any>,
+	totalExpenditureByDate?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type ReceiptTypeKeySpecifier = ('cost' | 'date' | 'expense' | 'id' | 'notes' | 'receiptImage' | 'storeName' | 'tags' | 'tax' | 'user' | ReceiptTypeKeySpecifier)[];
