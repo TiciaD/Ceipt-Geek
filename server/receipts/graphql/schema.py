@@ -23,6 +23,7 @@ from django.core.exceptions import ValidationError
 import re
 from datetime import datetime, timedelta
 from django.utils.crypto import get_random_string
+from django.db.models import Sum
 from decimal import Decimal
 
 
@@ -324,11 +325,16 @@ class ReceiptType(DjangoObjectType):
 
 
 class ReceiptQuery(ObjectType):
-    receipt = graphene.Field(ReceiptType, id=graphene.ID(required=True))
-    all_receipts = graphene.List(ReceiptType)
+    receipt = graphene.Field(
+        ReceiptType, 
+        id=graphene.ID(required=True)
+    )
+    all_receipts = graphene.List(
+        ReceiptType
+    )
     all_receipts_by_user = graphene.List(
         ReceiptType,
-        user_id=graphene.ID(required=True)
+        user_id=graphene.ID(required=True),
     )
     filtered_receipts = graphene.List(
         ReceiptType,
@@ -344,6 +350,11 @@ class ReceiptQuery(ObjectType):
         notes=graphene.String(),
         tags_contains_any=graphene.List(graphene.String),
         tags_contains_all=graphene.List(graphene.String),
+    )
+    total_expenditure_by_date = graphene.Float(
+        user_id = graphene.ID(required=True), 
+        date_gte=graphene.Date(required=True),
+        date_lte=graphene.Date(required=True),
     )
 
     def resolve_receipt(self, info, id):
@@ -500,6 +511,24 @@ class ReceiptQuery(ObjectType):
 
         return queryset
 
+    def resolve_total_expenditure_by_date(self, info, user_id, date_gte, date_lte):
+        try:
+            user = get_user_model().objects.get(pk=user_id)
+        except User.DoesNotExist:
+            raise GraphQLError(f'No user with id: {user_id} found.')
+        
+        receipts = Receipt.objects.filter(
+            user = user,
+            date__gte = date_gte,
+            date__lte = date_lte,
+        )
+        if not receipts.exists():
+            raise GraphQLError('No receipts found for given date range.')
+
+        total_cost = receipts.aggregate(Sum('cost'))['cost__sum'] or Decimal('0')
+
+        return round(total_cost, 2)
+
 
 class ReceiptInput(graphene.InputObjectType):
     store_name = graphene.String(required=True)
@@ -510,11 +539,6 @@ class ReceiptInput(graphene.InputObjectType):
     notes = graphene.String(required=False)
     tags = graphene.List(graphene.String, required=False)
     receipt_image = Upload(required=False)
-
-
-# class CreateReceiptResponse(graphene.ObjectType):
-#     receipt = graphene.Field(ReceiptType)
-#     csrf_token = graphene.String()
 
 
 class CreateReceipt(graphene.Mutation):
@@ -654,11 +678,6 @@ class TagQuery(ObjectType):
         if not tags.exists():
             raise GraphQLError('No tags found.')
         return tags
-
-
-# class TagInput(graphene.InputObjectType):
-#     id = graphene.ID()
-#     tag_name = graphene.String()
 
 
 class CreateTag(graphene.Mutation):
