@@ -1,3 +1,7 @@
+import cloudinary
+import cloudinary.uploader
+from cloudinary.models import CloudinaryField
+from graphene_django.converter import convert_django_field
 import graphene
 import graphql_jwt
 from django.contrib.auth import login
@@ -18,6 +22,14 @@ from ..models import Receipt
 from graphene_file_upload.scalars import Upload
 from django.utils.crypto import get_random_string
 from ..models import Tag
+
+
+@convert_django_field.register(CloudinaryField)
+def convert_field_to_string(field, registry=None):
+    """
+    Converter for CloudinaryField to be used by Graphene.
+    """
+    return graphene.String()
 
 # Auth Schema 
 
