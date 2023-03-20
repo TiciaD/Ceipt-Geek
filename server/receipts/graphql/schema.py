@@ -40,6 +40,8 @@ def login_required(func):
                 settings.GRAPHQL_JWT["JWT_SECRET_KEY"], 
                 algorithms=['HS256']
             )
+
+            kwargs['payload'] = payload
         except pyjwt.ExpiredSignatureError:
             raise GraphQLError('Token has expired')
         except pyjwt.InvalidTokenError:
@@ -66,7 +68,6 @@ class LoginMutation(graphene.Mutation):
             return None
 
         user = authenticate(email=email, password=password)
-        # print("User:", user)
 
         if user is not None and user.is_active:
             # Login the user to create a session
@@ -79,7 +80,7 @@ class LoginMutation(graphene.Mutation):
 
             return LoginMutation(success=True, token=token)
         else:
-            return LoginMutation(success=False, token=None, response=None)
+            return LoginMutation(success=False, token=None)
 
 
 class LogoutMutation(graphene.Mutation):
