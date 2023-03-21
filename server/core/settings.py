@@ -64,8 +64,6 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 
-JWT_AUTH_COOKIE = 'jwt_auth_cookie'
-
 ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
@@ -113,6 +111,9 @@ cloudinary.config(
 
 GRAPHENE = {
     'SCHEMA': 'receipts.graphql.schema.schema',
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
 }
 
 # Authentication
@@ -121,6 +122,8 @@ GRAPHQL_JWT = {
     'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY'),
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
 }
+
+SESSION_COOKIE_AGE = 1800
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',

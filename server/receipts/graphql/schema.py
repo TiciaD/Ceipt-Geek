@@ -13,6 +13,7 @@ import cloudinary.uploader
 from cloudinary.models import CloudinaryField
 
 import jwt as pyjwt
+from .decorators import login_required, is_receipt_owner_or_superuser
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.conf import settings
@@ -29,29 +30,6 @@ from decimal import Decimal
 
 # Auth Schema
 
-def login_required(func):
-    def wrapper(root, info, *args, **kwargs):
-        token = info.context.headers.get('Authorization', None)
-        if not token:
-            raise GraphQLError('Authentication token is required')
-        try:
-            payload = pyjwt.decode(
-                token, 
-                settings.GRAPHQL_JWT["JWT_SECRET_KEY"], 
-                algorithms=['HS256']
-            )
-
-            kwargs['payload'] = payload
-        except pyjwt.ExpiredSignatureError:
-            raise GraphQLError('Token has expired')
-        except pyjwt.InvalidTokenError:
-            raise GraphQLError('Invalid token')
-
-        return func(root, info, *args, **kwargs)
-
-    return wrapper
-
-
 class LoginMutation(graphene.Mutation):
     class Arguments:
         email = graphene.String(required=True)
@@ -61,6 +39,7 @@ class LoginMutation(graphene.Mutation):
     token = graphene.String()
 
     def mutate(self, info, email, password):
+        
         def authenticate(email, password):
             user = get_user_model().objects.get(email=email)
             if user.check_password(password):
@@ -544,15 +523,15 @@ class ReceiptInput(graphene.InputObjectType):
 
 class CreateReceipt(graphene.Mutation):
     class Arguments:
-            user_id = graphene.ID(required=True)
             receipt_data = ReceiptInput(required=True)
 
     receipt = graphene.Field(ReceiptType)
 
-    # Output = CreateReceiptResponse
+    @login_required
+    def mutate(root, info, **kwargs):
+        user_id = kwargs.get('user_id')
+        receipt_data = kwargs.get('receipt_data')
 
-    # @login_required
-    def mutate(root, info, receipt_data=None, user_id=None):
         try:
             user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
@@ -571,9 +550,6 @@ class CreateReceipt(graphene.Mutation):
             receipt_image=receipt_data.receipt_image,
         )
 
-        # Generate a CSRF token
-        # csrf_token = get_random_string(length=32)
-
         try:
             receipt_instance.save()
             if receipt_data.tags:
@@ -587,14 +563,6 @@ class CreateReceipt(graphene.Mutation):
             raise GraphQLError(e)
         return CreateReceipt(receipt=receipt_instance)
 
-        # Return the receipt and the CSRF token in the response payload
-        # response_data = CreateReceiptResponse(
-        #     receipt=receipt_instance,
-        #     csrf_token=csrf_token,
-        # )
-
-        return response_data
-
 
 class UpdateReceipt(graphene.Mutation):
     class Arguments:
@@ -603,12 +571,11 @@ class UpdateReceipt(graphene.Mutation):
 
     receipt = graphene.Field(ReceiptType)
 
-    def mutate(root, info, receipt_data=None, receipt_id=None):
-        try:
-            receipt_instance = Receipt.objects.get(pk=receipt_id)
-        except Receipt.DoesNotExist:
-            raise GraphQLError(
-                f'Receipt with id: {receipt_id} does not exist.')
+    @login_required
+    @is_receipt_owner_or_superuser
+    def mutate(root, info, **kwargs):
+        receipt_instance = kwargs.get('receipt_instance')
+        receipt_data = kwargs.get('receipt_data')
 
         receipt_instance.store_name = receipt_data.store_name
         receipt_instance.date = receipt_data.date
@@ -616,10 +583,11 @@ class UpdateReceipt(graphene.Mutation):
         receipt_instance.tax = receipt_data.tax
         receipt_instance.cost = receipt_data.cost
         receipt_instance.notes = receipt_data.notes
-        if receipt_instance.receipt_image:
-            public_id = receipt_instance.image_public_id()
-            cloudinary.uploader.destroy(public_id)
-        receipt_instance.receipt_image = receipt_data.receipt_image
+        if receipt_data.receipt_image:
+            if receipt_instance.receipt_image:
+                public_id = receipt_instance.image_public_id()
+                cloudinary.uploader.destroy(public_id)
+            receipt_instance.receipt_image = receipt_data.receipt_image
         try:
             tag_ids = []
             if receipt_data.tags:
@@ -666,9 +634,7 @@ class TagQuery(ObjectType):
     tag = graphene.Field(TagType, id=graphene.ID(required=True))
     all_tags = graphene.List(TagType)
 
-    def resolve_tag(self, info, **kwargs):
-        id = kwargs.get('id')
-
+    def resolve_tag(self, info, id):
         try:
             return Tag.objects.get(pk=id)
         except Tag.DoesNotExist:

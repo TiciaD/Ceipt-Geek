@@ -12,6 +12,7 @@ class ExtendedUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password']
 
+
 class Receipt(models.Model):
     store_name = models.CharField(
         max_length=255,
