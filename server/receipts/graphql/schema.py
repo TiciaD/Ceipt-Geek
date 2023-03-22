@@ -13,7 +13,7 @@ import cloudinary.uploader
 from cloudinary.models import CloudinaryField
 
 import jwt as pyjwt
-from .decorators import login_required, is_receipt_owner_or_superuser
+from .decorators import is_superuser, login_required, is_owner_or_superuser
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.conf import settings
@@ -23,12 +23,11 @@ from django.core.exceptions import ValidationError
 
 import re
 from datetime import datetime, timedelta
-from django.utils.crypto import get_random_string
 from django.db.models import Sum
 from decimal import Decimal
 
 
-# Auth Schema
+# AUTH SCHEMA
 
 class LoginMutation(graphene.Mutation):
     class Arguments:
@@ -39,7 +38,7 @@ class LoginMutation(graphene.Mutation):
     token = graphene.String()
 
     def mutate(self, info, email, password):
-        
+
         def authenticate(email, password):
             user = get_user_model().objects.get(email=email)
             if user.check_password(password):
@@ -78,7 +77,7 @@ class LogoutMutation(graphene.Mutation):
             return LogoutMutation(success=False)
 
 
-# User Schema
+# USER SCHEMA
 
 
 User = get_user_model()
@@ -215,13 +214,13 @@ class UpdateUser(graphene.Mutation):
                 validate_email(email)
             except Exception as e:
                 raise GraphQLError(e)
-      
+
         if username:
             try:
                 UpdateUser.validate_username(username)
             except Exception as e:
                 raise GraphQLError(e)
-            
+
         if password:
             try:
                 validate_password(password)
@@ -263,7 +262,7 @@ class DeleteUser(graphene.Mutation):
             raise GraphQLError(f'User with id: {id} does not exist.')
 
 
-# Receipt Schema
+# RECEIPT SCHEMA
 
 
 # Register a custom converter for CloudinaryField
@@ -306,19 +305,18 @@ class ReceiptType(DjangoObjectType):
 
 class ReceiptQuery(ObjectType):
     receipt = graphene.Field(
-        ReceiptType, 
-        id=graphene.ID(required=True)
+        ReceiptType,
+        receipt_id=graphene.ID(required=True)
     )
     all_receipts = graphene.List(
-        ReceiptType
+        ReceiptType,
+        user_id=graphene.ID(required=False),
     )
     all_receipts_by_user = graphene.List(
-        ReceiptType,
-        user_id=graphene.ID(required=True),
+        ReceiptType
     )
     filtered_receipts = graphene.List(
         ReceiptType,
-        user_id=graphene.ID(),
         store_name=graphene.String(),
         expense=graphene.String(),
         date_gte=graphene.Date(),
@@ -332,36 +330,52 @@ class ReceiptQuery(ObjectType):
         tags_contains_all=graphene.List(graphene.String),
     )
     total_expenditure_by_date = graphene.Float(
-        user_id = graphene.ID(required=True), 
         date_gte=graphene.Date(required=True),
         date_lte=graphene.Date(required=True),
     )
 
-    def resolve_receipt(self, info, id):
-        try:
-            return Receipt.objects.get(pk=id)
-        except Receipt.DoesNotExist:
-            raise GraphQLError(f'No receipt with id: {id} found.')
+    @login_required
+    @is_owner_or_superuser('receipt')
+    def resolve_receipt(self, info, **kwargs):
+        receipt = kwargs.get('receipt_instance')
+        return receipt
 
+    @is_superuser
     def resolve_all_receipts(self, info, **kwargs):
-        receipts = Receipt.objects.all()
+        user_id = kwargs.get('user_id')
+
+        if user_id is not None:
+            try:
+                user = get_user_model().objects.get(pk=user_id)
+            except get_user_model().DoesNotExist:
+                raise GraphQLError(
+                    f'No user with user id: {user_id} found. Could not query for receipts belonging to a user that does not exist.'
+                )
+            receipts = Receipt.objects.filter(user=user)
+        else:
+            receipts = Receipt.objects.all()
+
         if not receipts.exists():
-            raise GraphQLError('No receipts found.')
+            if user_id is not None:
+                raise GraphQLError(
+                    f'No receipts found for user with user id: {user_id}'
+                )
+            else:
+                raise GraphQLError('No receipts found.')
+
         return receipts
 
-    def resolve_all_receipts_by_user(self, info, user_id):
-        try:
-            user = get_user_model().objects.get(pk=user_id)
-        except get_user_model().DoesNotExist:
-            raise GraphQLError(
-                f'No user with user id: {user_id} found. Could not query for receipts belonging to a user that does not exist.'
-            )
+    @login_required
+    def resolve_all_receipts_by_user(self, info, **kwargs):
+        user_id = kwargs.get('user_id')
 
-        receipts = Receipt.objects.filter(user=user)
+        receipts = Receipt.objects.filter(user_id=user_id)
+
         if not receipts.exists():
             raise GraphQLError(
                 f'No receipts found for user with user id: {user_id}.'
             )
+        
         return receipts
 
     @staticmethod
@@ -372,16 +386,21 @@ class ReceiptQuery(ObjectType):
 
         return filtered_qs
 
+    @login_required
     def resolve_filtered_receipts(self, info, **kwargs):
+        user_id = kwargs.pop('user_id')
+
         if not kwargs:
             raise GraphQLError(
-                'Please provide at least one field to filter by. Fields include: userId, storeName, expense, dateGte, dateLte, costGte, costLte, notes, and tags')
+                'Please provide at least one field to filter by. Fields include: storeName, expense, dateGte, dateLte, costGte, costLte, notes, and tags'
+            )
 
-        queryset = Receipt.objects.all()
+        queryset = Receipt.objects.filter(user_id=user_id)
         if not queryset.exists():
-            raise GraphQLError('No receipts found in the database.')
+            raise GraphQLError(
+                f'No receipts belonging to user with user_id: {user_id} found.'
+            )
 
-        user_id = kwargs.get('user_id')
         store_name = kwargs.get('store_name')
         expense = kwargs.get('expense')
         date_gte = kwargs.get('date_gte')
@@ -393,14 +412,6 @@ class ReceiptQuery(ObjectType):
         notes = kwargs.get('notes')
         tags_contains_any = kwargs.get('tags_contains_any')
         tags_contains_all = kwargs.get('tags_contains_all')
-
-        if user_id:
-            try:
-                user = get_user_model().objects.get(pk=user_id)
-                queryset = queryset.filter(user=user)
-            except get_user_model().DoesNotExist:
-                raise GraphQLError(
-                    f"No user found with id {user_id}. Could not filter receipts belonging to a user that does not exist.")
 
         if store_name:
             store_name = store_name.strip()
@@ -491,21 +502,23 @@ class ReceiptQuery(ObjectType):
 
         return queryset
 
-    def resolve_total_expenditure_by_date(self, info, user_id, date_gte, date_lte):
-        try:
-            user = get_user_model().objects.get(pk=user_id)
-        except User.DoesNotExist:
-            raise GraphQLError(f'No user with id: {user_id} found.')
-        
+    @login_required
+    def resolve_total_expenditure_by_date(self, info, **kwargs):
+        user_id = kwargs.get('user_id')
+        date_gte = kwargs.get('date_gte')
+        date_lte = kwargs.get('date_lte')
+
         receipts = Receipt.objects.filter(
-            user = user,
-            date__gte = date_gte,
-            date__lte = date_lte,
+            user_id=user_id, 
+            date__gte=date_gte,
+            date__lte=date_lte,
         )
+
         if not receipts.exists():
             raise GraphQLError('No receipts found for given date range.')
 
-        total_cost = receipts.aggregate(Sum('cost'))['cost__sum'] or Decimal('0')
+        total_cost = receipts.aggregate(
+            Sum('cost'))['cost__sum'] or Decimal('0')
 
         return round(total_cost, 2)
 
@@ -523,7 +536,7 @@ class ReceiptInput(graphene.InputObjectType):
 
 class CreateReceipt(graphene.Mutation):
     class Arguments:
-            receipt_data = ReceiptInput(required=True)
+        receipt_data = ReceiptInput(required=True)
 
     receipt = graphene.Field(ReceiptType)
 
@@ -572,7 +585,7 @@ class UpdateReceipt(graphene.Mutation):
     receipt = graphene.Field(ReceiptType)
 
     @login_required
-    @is_receipt_owner_or_superuser
+    @is_owner_or_superuser('receipt')
     def mutate(root, info, **kwargs):
         receipt_instance = kwargs.get('receipt_instance')
         receipt_data = kwargs.get('receipt_data')
@@ -608,21 +621,21 @@ class DeleteReceipt(graphene.Mutation):
 
     success = graphene.Boolean()
 
-    def mutate(root, info, receipt_id):
+    @login_required
+    @is_owner_or_superuser('receipt')
+    def mutate(root, info, **kwargs):
+        receipt = kwargs.get('receipt_instance')
         try:
-            receipt = Receipt.objects.get(pk=receipt_id)
             if receipt.receipt_image:
                 public_id = receipt.image_public_id()
                 cloudinary.uploader.destroy(public_id)
             receipt.delete()
             return DeleteReceipt(success=True)
-        except Receipt.DoesNotExist:
-            raise GraphQLError(
-                f'Receipt with id: {receipt_id} does not exist.'
-            )
+        except Exception as e:
+            raise GraphQLError(e)
 
 
-# Tag Schema
+# TAG SCHEMA
 
 class TagType(DjangoObjectType):
     class Meta:

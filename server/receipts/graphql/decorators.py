@@ -13,7 +13,7 @@ def login_required(func):
     def wrapper(root, info, *args, **kwargs):
         authorization_header = info.context.headers.get('Authorization', None)
         if authorization_header is None:
-            raise GraphQLError('Authentication token is required')
+            raise GraphQLError('Authorization token is required')
         
         pattern = re.compile("^Bearer\s(.+)$")
         match = pattern.match(authorization_header)
@@ -40,27 +40,46 @@ def login_required(func):
     return wrapper
 
 
-def is_receipt_owner_or_superuser(func):
-    def wrapper(root, info, *args, **kwargs):
-        user_id = kwargs.get('user_id')
-        receipt_id = kwargs.get('receipt_id')
+def is_owner_or_superuser(model):
+    def decorator(func):
+        def wrapper(root, info, *args, **kwargs):
+            print(model)
+            user_id = kwargs.get('user_id')
 
-        try:
-            receipt_instance = Receipt.objects.get(pk=receipt_id)
-        except Receipt.DoesNotExist:
-            raise GraphQLError(
-                f'Receipt with id: {receipt_id} does not exist.'
-            )
-        
-        print(
-            f'user_id: {user_id}, receipt user_id: {receipt_instance.user.id}, superuser: {info.context.user.is_superuser}')
-        
-        if str(receipt_instance.user.id) == str(user_id) or info.context.user.is_superuser:
-            kwargs['receipt_instance'] = receipt_instance
+            if model == 'receipt':
+                receipt_id = kwargs.get('receipt_id')
+
+                try:
+                    receipt_instance = Receipt.objects.get(pk=receipt_id)
+                except Receipt.DoesNotExist:
+                    raise GraphQLError(
+                        f'Receipt with id: {receipt_id} does not exist.'
+                    )
+                
+                print(
+                    f'user_id: {user_id}, receipt user_id: {receipt_instance.user.id}, superuser: {info.context.user.is_superuser}'
+                )
+                
+                if str(receipt_instance.user.id) == str(user_id) or info.context.user.is_superuser:
+                    kwargs['receipt_instance'] = receipt_instance
+                    return func(root, info, *args, **kwargs)
+                else:
+                    raise GraphQLError(
+                        'You do not have permission to perform this action'
+                    )
+
+        return wrapper
+    
+    return decorator
+
+
+def is_superuser(func):
+    def wrapper(root, info, *args, **kwargs):
+        if info.context.user.is_superuser:
             return func(root, info, *args, **kwargs)
         else:
             raise GraphQLError(
                 'You do not have permission to perform this action'
             )
-
+    
     return wrapper
