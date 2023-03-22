@@ -16,14 +16,15 @@ import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useFormik } from "formik";
 import { CreateAccountSchema } from "../types/schemas";
-import { useMutation } from "@apollo/client";
-import { CREATE_ACCOUNT_MUTATION } from "../graphql/mutations";
 import { useRouter } from "next/router";
+import { useCreateAccountMutation } from "../graphql/generated/graphql";
+import { useAuth } from "../utils/useAuth";
 
 export default function CreateAccountForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [signup] = useMutation(CREATE_ACCOUNT_MUTATION);
+  const [signup] = useCreateAccountMutation();
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -47,8 +48,13 @@ export default function CreateAccountForm() {
             email: values.email,
             password: values.password
           },
-        onCompleted: () => {
-          router.push('/login')
+        onCompleted: (data) => {
+          if (data.login?.success === true) {
+            login(data?.login?.token || '')
+            router.push('/')
+          } else {
+            setError("Login Unsuccessful");
+          }
         },
         onError: (error) => {
           setError(error.message);

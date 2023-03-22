@@ -16,15 +16,14 @@ import { useFormik } from "formik";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { LoginSchema } from "../types/schemas";
-import { LOGIN_MUTATION } from "../graphql/mutations";
-import { useMutation } from "@apollo/client";
 import { useRouter } from "next/router";
 import { useAuth } from "../utils/useAuth";
+import { useAuthMutation } from "../graphql/generated/graphql";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loginMutation] = useMutation(LOGIN_MUTATION);
+  const [authMutation] = useAuthMutation();
   const { login } = useAuth();
   const router = useRouter();
 
@@ -43,14 +42,18 @@ export default function LoginForm() {
     },
     validationSchema: LoginSchema,
     onSubmit: async (values) => {
-      await loginMutation({
+      await authMutation({
         variables: {
           email: values.email,
           password: values.password
         },
         onCompleted: (data) => {
-          login(data.tokenAuth.token)
-          router.push('/')
+          if (data.login?.success === true) {
+            login(data?.login?.token || '')
+            router.push('/')
+          } else {
+            setError("Login Unsuccessful");
+          }
         },
         onError: (error) => {
           setError(error.message);
