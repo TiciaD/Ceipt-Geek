@@ -23,7 +23,6 @@ export const AuthContext = createContext<AuthContext>({
   setUserToken: () => {},
 });
 
-
 const lightTheme = createTheme({
   components: {
     MuiContainer: {

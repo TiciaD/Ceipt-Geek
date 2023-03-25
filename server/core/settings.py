@@ -52,26 +52,6 @@ INSTALLED_APPS = [
     'cloudinary'
 ]
 
-AUTH_USER_MODEL = 'receipts.ExtendedUser'
-
-
-GRAPHENE = {
-    'SCHEMA': 'receipts.graphql.schema.schema',
-    'MIDDLEWARE': [
-        'graphql_jwt.middleware.JSONWebTokenMiddleware',
-    ],
-}
-
-GRAPHQL_JWT = {
-    'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY'),
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
-}
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'graphql_jwt.backends.JSONWebTokenBackend',
-]
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -82,10 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'graphql_jwt.decorators.jwt_cookie',
 ]
-
-JWT_AUTH_COOKIE = 'jwt_auth_cookie'
 
 ROOT_URLCONF = 'core.urls'
 
@@ -146,6 +123,8 @@ GRAPHQL_JWT = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
 }
 
+SESSION_COOKIE_AGE = 1800
+
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
@@ -166,9 +145,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
-    # {
-    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    # },
     {
         'NAME': 'django_advanced_password_validation.advanced_password_validation.ContainsDigitsValidator',
         'OPTIONS': {
