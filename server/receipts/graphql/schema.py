@@ -664,12 +664,15 @@ class TagType(DjangoObjectType):
 
 
 class TagQuery(ObjectType):
-    tag = graphene.Field(TagType, id=graphene.ID(required=True))
+    tag = graphene.Field(TagType, tag_id=graphene.ID(required=True))
     all_tags = graphene.List(TagType)
 
-    def resolve_tag(self, info, id):
+    @login_required
+    @is_owner_or_superuser('tag')
+    def resolve_tag(self, info, **kwargs):
+        tag_instance = kwargs.get('tag_instance')
         try:
-            return Tag.objects.get(pk=id)
+            return tag_instance
         except Tag.DoesNotExist:
             raise GraphQLError(f'Tag with id: {id} not found.')
 
@@ -683,12 +686,16 @@ class TagQuery(ObjectType):
 class CreateTag(graphene.Mutation):
     class Arguments:
         tag_name = graphene.String(required=True)
+        
 
     tag = graphene.Field(TagType)
 
-    def mutate(root, info, tag_name):
+    @login_required
+    def mutate(root, info, tag_name,**kwargs):
+        user_id = kwargs.get('auth_user_id')
         tag_instance = Tag(
-            tag_name
+            tag_name=tag_name,
+            user_id=user_id
         )
         try:
             tag_instance.save()
@@ -699,18 +706,24 @@ class CreateTag(graphene.Mutation):
 
 class UpdateTag(graphene.Mutation):
     class Arguments:
-        id = graphene.ID(required=True)
+        tag_id = graphene.ID(required=True)
         tag_name = graphene.ID(required=True)
 
     tag = graphene.Field(TagType)
 
-    def mutate(root, info, id, tag_name):
-        try:
-            tag_instance = Tag.objects.get(pk=id)
-        except Tag.DoesNotExist:
-            raise GraphQLError(f'Tag with id: {id} does not exist')
+    @login_required
+    @is_owner_or_superuser('tag')
+    def mutate(root, info, tag_id, tag_name, **kwargs):
 
-        tag_instance.tag_name = tag_name
+        try:
+            tag_instance = Tag.objects.get(pk=tag_id)
+        except Tag.DoesNotExist:
+            raise GraphQLError(f'Tag with id: {tag_id} does not exist')
+        user_id = kwargs.get('auth_user_id')
+        tag_instance = Tag(
+            tag_name=tag_name,
+            user_id=user_id
+        )
         try:
             tag_instance.save()
         except Exception as e:
@@ -720,14 +733,16 @@ class UpdateTag(graphene.Mutation):
 
 class DeleteTag(graphene.Mutation):
     class Arguments:
-        id = graphene.ID(required=True)
+        tag_id = graphene.ID(required=True)
 
     success = graphene.Boolean()
 
-    def mutate(root, info, id):
+    @login_required
+    @is_owner_or_superuser('tag')
+    def mutate(root, info, tag_id, **kwargs):
+        tag_instance = kwargs.get('tag_instance')
         try:
-            tag = Tag.objects.get(id=id)
-            tag.delete()
+            tag_instance.delete()
             return DeleteTag(success=True)
         except Tag.DoesNotExist:
             raise GraphQLError(f'Tag with id: {id} does not exist')
