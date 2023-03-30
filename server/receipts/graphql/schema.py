@@ -589,7 +589,8 @@ class CreateReceipt(graphene.Mutation):
                 input_tags = [tag.strip() for tag in receipt_data.tags]
                 for input_tag in input_tags:
                     tag = Tag.objects.get_or_create(
-                        tag_name=input_tag
+                        tag_name=input_tag,
+                        user_id=user_id
                     )[0]
                     receipt_instance.tags.add(tag)
         except Exception as e:
@@ -607,6 +608,7 @@ class UpdateReceipt(graphene.Mutation):
     @login_required
     @is_owner_or_superuser('receipt')
     def mutate(root, info, **kwargs):
+        user_id = kwargs.get('auth_user_id')
         receipt_instance = kwargs.get('receipt_instance')
         receipt_data = kwargs.get('receipt_data')
 
@@ -626,7 +628,7 @@ class UpdateReceipt(graphene.Mutation):
             if receipt_data.tags:
                 tags = [tag.strip() for tag in receipt_data.tags]
                 for tag in tags:
-                    tag_id = Tag.objects.get_or_create(tag_name=tag)[0]
+                    tag_id = Tag.objects.get_or_create(tag_name=tag, user_id=user_id)[0]
                     tag_ids.append(tag_id)
             receipt_instance.tags.set(tag_ids)
             receipt_instance.save()
