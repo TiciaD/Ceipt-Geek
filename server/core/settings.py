@@ -109,7 +109,8 @@ DATABASES = {
         'HOST': os.environ.get('COCKROACH_DB_HOST'),
         'PORT': os.environ.get('COCKROACH_DB_PORT'),
         'OPTIONS': {
-            'sslmode': 'verify-full'
+            'sslmode': 'verify-full',
+            'sslrootcert': os.path.join(BASE_DIR, '..', 'server', 'root.crt')
         },
     },
 }

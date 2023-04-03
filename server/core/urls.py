@@ -27,6 +27,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/admin')),
     path('api/', include('receipts.urls')),
     path('graphql/', csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
+    path('graphql', csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
 ]
 
 urlpatterns += [
