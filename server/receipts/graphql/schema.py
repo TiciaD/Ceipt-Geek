@@ -541,9 +541,6 @@ class ReceiptQuery(ObjectType):
             date__lte=date_lte,
         )
 
-        if not receipts.exists():
-            raise GraphQLError('No receipts found for given date range.')
-
         total_cost = receipts.aggregate(
             Sum('cost'))['cost__sum'] or Decimal('0')
 
