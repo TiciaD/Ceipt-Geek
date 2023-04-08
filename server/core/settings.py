@@ -31,7 +31,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = ['ceipt-geek-backend.onrender.com']
+ALLOWED_HOSTS = ['ceipt-geek-backend.onrender.com', '127.0.0.1']
 
 # Application definition
 

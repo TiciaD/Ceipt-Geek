@@ -140,15 +140,6 @@ def run_seed(self, mode, num_receipts):
     if mode == MODE_CLEAR:
         return
 
-    # Create a superuser
-    logger.info("Creating superuser...")
-    admin = User.objects.create_superuser(
-        username='admin',
-        email='admin@email.com',
-        password='password'
-    )
-    logger.info("{} superuser created.".format(admin))
-
     # Create test users
     logger.info('creating users...')
     for i in range(3):
