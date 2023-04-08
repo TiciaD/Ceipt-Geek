@@ -93,12 +93,10 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+if DEBUG:
+    sslrootcert = os.path.join(BASE_DIR, '..', 'server', 'root.crt')
+else:
+    sslrootcert = '/etc/secrets/root.cert'
 
 DATABASES = {
     'default': {
@@ -110,7 +108,7 @@ DATABASES = {
         'PORT': os.environ.get('COCKROACH_DB_PORT'),
         'OPTIONS': {
             'sslmode': 'verify-full',
-            'sslrootcert': os.path.join(BASE_DIR, '..', 'server', 'root.crt')
+            'sslrootcert': sslrootcert
         },
     },
 }
