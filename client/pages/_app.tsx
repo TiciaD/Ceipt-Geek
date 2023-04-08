@@ -91,7 +91,7 @@ const darkTheme = createTheme({
 type Theme = "light" | "dark";
 
 const httpLink = createHttpLink({
-  uri: "http://localhost:8000/graphql/",
+  uri: process.env.BACKEND_URL || "http://localhost:8000/graphql/",
 });
 
 export const AUTH_TOKEN = "ceipt-geek-auth-token";
