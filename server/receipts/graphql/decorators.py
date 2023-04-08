@@ -81,6 +81,22 @@ def is_owner_or_superuser(model):
                     raise GraphQLError(
                         'You do not have permission to perform this action'
                     )
+            if model == 'tag':
+                tag_id = kwargs.get('tag_id')
+
+                try:
+                    tag_instance = Tag.objects.get(pk=tag_id)
+                except Tag.DoesNotExist:
+                    raise GraphQLError(
+                        f'Tag with id: {tag_id} does not exist.'
+                    )
+                if str(tag_instance.user.id) == str(info.context.user.id) or info.context.user.is_superuser:
+                    kwargs['tag_instance'] = tag_instance
+                    return func(root, info, *args, **kwargs)
+                else:
+                    raise GraphQLError(
+                        'You do not have permission to perform this action'
+                    )            
 
         return wrapper
     
