@@ -2,6 +2,7 @@ import { Card, CardContent, Typography } from "@mui/material";
 import LoginForm from "../../forms/LoginForm";
 
 export default function Login() {
+  console.log(process.env.BACKEND_URL || "none");
   return (
     <Card sx={{ minWidth: 275, padding: "2rem" }}>
       <CardContent>
