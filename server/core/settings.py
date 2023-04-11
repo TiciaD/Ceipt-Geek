@@ -93,25 +93,30 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-if DEBUG:
-    sslrootcert = os.path.join(BASE_DIR, '..', 'server', 'root.crt')
-else:
-    sslrootcert = '/etc/secrets/root.cert'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django_cockroachdb',
-        'NAME': os.environ.get('COCKROACH_DB_DATABASE'),
-        'USER': os.environ.get('COCKROACH_DB_USERNAME'),
-        'PASSWORD': os.environ.get('COCKROACH_DB_USER_PASSWORD'),
-        'HOST': os.environ.get('COCKROACH_DB_HOST'),
-        'PORT': os.environ.get('COCKROACH_DB_PORT'),
-        'OPTIONS': {
-            'sslmode': 'verify-full',
-            'sslrootcert': sslrootcert
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django_cockroachdb',
+            'NAME': os.environ.get('COCKROACH_DB_DATABASE'),
+            'USER': os.environ.get('COCKROACH_DB_USERNAME'),
+            'PASSWORD': os.environ.get('COCKROACH_DB_USER_PASSWORD'),
+            'HOST': os.environ.get('COCKROACH_DB_HOST'),
+            'PORT': os.environ.get('COCKROACH_DB_PORT'),
+            'OPTIONS': {
+                'sslmode': 'verify-full',
+                'sslrootcert': '/etc/secrets/root.cert'
+            },
         },
-    },
-}
+    }
 
 # Cloudinary Config
 
