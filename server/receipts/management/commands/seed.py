@@ -120,6 +120,7 @@ def create_receipt():
     # Add tags to receipt
     for _ in range(random.randint(1, 3)):
         tag = Tag.objects.get_or_create(
+            user=user,
             tag_name=random.choice(tags)
         )[0]
         receipt.tags.add(tag)
