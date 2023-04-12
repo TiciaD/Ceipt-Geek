@@ -24,9 +24,10 @@ from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', RedirectView.as_view(url='/api')),
+    path('', RedirectView.as_view(url='/graphql')),
     path('api/', include('receipts.urls')),
     path('graphql/', csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
+    path('graphql', csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
 ]
 
 urlpatterns += [
