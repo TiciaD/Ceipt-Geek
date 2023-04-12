@@ -6,6 +6,7 @@ import cloudinary.uploader
 
 from decimal import Decimal
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from receipts.models import Receipt, Tag
 from datetime import datetime, timedelta
@@ -47,15 +48,19 @@ class Command(BaseCommand):
                             default=20, help='Number of receipts to generate')
 
     def handle(self, *args, **options):
-        mode = options['mode']
-        num_receipts = options['num_receipts']
-        self.stdout.write('starting seed...')
-        if mode == MODE_REFRESH:
-            self.stdout.write('refreshing the database...')
-        elif mode == MODE_CLEAR:
-            self.stdout.write('clearing the database...')
-        run_seed(self, mode, num_receipts)
-        self.stdout.write('done.')
+        if settings.DEBUG:
+            mode = options['mode']
+            num_receipts = options['num_receipts']
+            self.stdout.write('starting seed...')
+            if mode == MODE_REFRESH:
+                self.stdout.write('refreshing the database...')
+            elif mode == MODE_CLEAR:
+                self.stdout.write('clearing the database...')
+            run_seed(self, mode, num_receipts)
+            self.stdout.write('done.')
+        
+        else:
+            self.stdout.write('seed script not functional during production.')
 
 
 def clear_data():
@@ -139,6 +144,16 @@ def run_seed(self, mode, num_receipts):
     clear_data()
     if mode == MODE_CLEAR:
         return
+
+    if settings.DEBUG:
+        # Create a superuser
+        logger.info("Creating superuser...")
+        admin = User.objects.create_superuser(
+            username='admin',
+            email='admin@email.com',
+            password='password'
+        )
+        logger.info("{} superuser created.".format(admin))
 
     # Create test users
     logger.info('creating users...')
