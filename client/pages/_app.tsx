@@ -92,15 +92,17 @@ type Theme = "light" | "dark";
 
 const httpLink = createHttpLink({
   uri: process.env.BACKEND_URL || "http://localhost:8000/graphql/",
+  credentials: "include",
 });
 
 export const AUTH_TOKEN = "ceipt-geek-auth-token";
 const authLink = setContext((_, { headers }) => {
-  const token = localStorage.getItem(AUTH_TOKEN);
+  let token = localStorage.getItem(AUTH_TOKEN) || '';
+  if (token) token = JSON.parse(token);
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : ''
+      Authorization: `Bearer ${token}`
     }
   };
 });
