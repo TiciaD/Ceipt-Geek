@@ -8,6 +8,8 @@ from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
 from graphene_django.types import DjangoObjectType, ObjectType
 from graphene_django.converter import convert_django_field
+from graphene import relay
+from graphene_django.filter import DjangoFilterConnectionField
 
 import cloudinary.uploader
 from cloudinary.models import CloudinaryField
@@ -315,13 +317,24 @@ class DecimalType(graphene.Scalar):
         return Decimal(value)
 
 
-class ReceiptType(DjangoObjectType):
-    cost = DecimalType()
-    tax = DecimalType()
 
+# class ReceiptType(DjangoObjectType):
+#     cost = DecimalType()
+#     tax = DecimalType()
+
+#     class Meta:
+#         fields = "__all__"
+#         model = Receipt
+
+class ReceiptNode(DjangoObjectType):
     class Meta:
-        fields = "__all__"
         model = Receipt
+        filter_fields = ['user']
+        interfaces = (relay.Node, )
+
+class ReceiptConnection(relay.Connection):
+    class Meta:
+        node = ReceiptNode
 
     def resolve_receipt_image(self, info):
         if self.receipt_image:
@@ -330,14 +343,22 @@ class ReceiptType(DjangoObjectType):
 
 
 class ReceiptQuery(ObjectType):
-    receipt = graphene.Field(
-        ReceiptType,
-        receipt_id=graphene.ID(required=True)
-    )
-    all_receipts = graphene.List(
-        ReceiptType,
-        user_id=graphene.ID(required=False),
-    )
+    # receipt = graphene.Field(
+    #     ReceiptType,
+    #     receipt_id=graphene.ID(required=True)
+    # )
+    # all_receipts = graphene.List(
+    #     ReceiptType,
+    #     user_id=graphene.ID(required=False),
+    # )
+    receipt = relay.Node.Field(ReceiptNode, receipt_id=graphene.ID(required=True))
+
+    all_receipts = DjangoFilterConnectionField(
+        ReceiptConnection,
+        sort_by=graphene.String(), 
+        user_id=graphene.ID(required=False)
+        )
+    
     all_receipts_by_user = graphene.List(
         ReceiptType
     )
