@@ -1,9 +1,9 @@
 import Head from "next/head";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import styles from "../styles/Home.module.css";
 import { useContext } from "react";
 import { ColorModeContext } from "../pages/_app";
+import { Box } from "@mui/material";
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -19,7 +19,11 @@ export default function Layout({ children }: LayoutProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Navbar toggleTheme={colorMode.toggleColorMode} />
-      <main className={styles.main}>{children}</main>
+        <main>
+          <Box sx={{minHeight: '100vh', padding: '2rem', maxWidth: '56rem', marginX: 'auto'}}>
+            {children}
+          </Box>
+        </main>
       <Footer />
     </>
   );

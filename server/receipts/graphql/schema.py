@@ -2,7 +2,7 @@ from ..models import Receipt, Tag
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from django.db.models import Q
-
+from django.db.models import F
 import graphene
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -27,6 +27,8 @@ import re
 from datetime import datetime, timedelta
 from django.db.models import Sum
 from decimal import Decimal
+
+from .sort import sort_dataset
 
 
 # AUTH SCHEMA
@@ -104,7 +106,7 @@ class UserQuery(graphene.ObjectType):
         id=graphene.Int(),
         email=graphene.String()
     )
-    all_users = graphene.List(UserType)
+    all_users = graphene.List(UserType, sort_by=graphene.List(graphene.String,required=False))
 
     @login_required
     def resolve_user(self, info, **kwargs):
@@ -139,9 +141,12 @@ class UserQuery(graphene.ObjectType):
     @login_required
     @is_superuser
     def resolve_all_users(self, info, **kwargs):
+        sort_by = kwargs.get('sort_by')
         users = User.objects.all()
         if not users.exists():
             raise GraphQLError('No users found.')
+        if sort_by:
+            users = sort_dataset(users, sort_by)
         return users
 
 
@@ -318,13 +323,13 @@ class DecimalType(graphene.Scalar):
 
 
 
-# class ReceiptType(DjangoObjectType):
-#     cost = DecimalType()
-#     tax = DecimalType()
+class ReceiptType(DjangoObjectType):
+    cost = DecimalType()
+    tax = DecimalType()
 
-#     class Meta:
-#         fields = "__all__"
-#         model = Receipt
+    class Meta:
+        fields = "__all__"
+        model = Receipt
 
 class ReceiptNode(DjangoObjectType):
     class Meta:
@@ -332,35 +337,23 @@ class ReceiptNode(DjangoObjectType):
         filter_fields = ['user']
         interfaces = (relay.Node, )
 
-class ReceiptConnection(relay.Connection):
-    class Meta:
-        node = ReceiptNode
-
     def resolve_receipt_image(self, info):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
 
-
 class ReceiptQuery(ObjectType):
-    # receipt = graphene.Field(
-    #     ReceiptType,
-    #     receipt_id=graphene.ID(required=True)
-    # )
-    # all_receipts = graphene.List(
-    #     ReceiptType,
-    #     user_id=graphene.ID(required=False),
-    # )
-    receipt = relay.Node.Field(ReceiptNode, receipt_id=graphene.ID(required=True))
-
-    all_receipts = DjangoFilterConnectionField(
-        ReceiptConnection,
-        sort_by=graphene.String(), 
-        user_id=graphene.ID(required=False)
-        )
-    
+    receipt = graphene.Field(
+        ReceiptType,
+        receipt_id=graphene.ID(required=True)
+    )
+    all_receipts = graphene.List(
+        ReceiptType,
+        user_id=graphene.ID(required=False),
+    )
     all_receipts_by_user = graphene.List(
-        ReceiptType
+        ReceiptType,
+        sort_by=graphene.List(graphene.String, required=False)
     )
     filtered_receipts = graphene.List(
         ReceiptType,
@@ -375,6 +368,7 @@ class ReceiptQuery(ObjectType):
         notes=graphene.String(),
         tags_contains_any=graphene.List(graphene.String),
         tags_contains_all=graphene.List(graphene.String),
+        sort_by=graphene.List(graphene.String, required=False)
     )
     total_expenditure_by_date = graphene.Float(
         date_gte=graphene.Date(required=True),
@@ -391,6 +385,7 @@ class ReceiptQuery(ObjectType):
     @is_superuser
     def resolve_all_receipts(self, info, **kwargs):
         user_id = kwargs.get('user_id')
+        sort_by = kwargs.get('sort_by')
 
         if user_id is not None:
             try:
@@ -410,12 +405,17 @@ class ReceiptQuery(ObjectType):
                 )
             else:
                 raise GraphQLError('No receipts found.')
+            
+        if sort_by:
+            receipts = sort_dataset(receipts, sort_by)
 
         return receipts
 
     @login_required
     def resolve_all_receipts_by_user(self, info, **kwargs):
         user_id = kwargs.get('auth_user_id')
+        sort_by = kwargs.get('sort_by')
+
 
         receipts = Receipt.objects.filter(user_id=user_id)
 
@@ -423,6 +423,8 @@ class ReceiptQuery(ObjectType):
             raise GraphQLError(
                 f'No receipts found for user with user id: {user_id}.'
             )
+        if sort_by:
+            receipts = sort_dataset(receipts, sort_by)
         
         return receipts
 
@@ -437,6 +439,8 @@ class ReceiptQuery(ObjectType):
     @login_required
     def resolve_filtered_receipts(self, info, **kwargs):
         user_id = kwargs.pop('auth_user_id')
+        sort_by = kwargs.get('sort_by')
+
 
         if not kwargs:
             raise GraphQLError(
@@ -547,7 +551,9 @@ class ReceiptQuery(ObjectType):
                 raise GraphQLError(
                     'No receipts found matching filtered fields.'
                 )
-
+        if sort_by:
+            queryset = sort_dataset(queryset, sort_by)
+        
         return queryset
 
     @login_required
@@ -561,9 +567,6 @@ class ReceiptQuery(ObjectType):
             date__gte=date_gte,
             date__lte=date_lte,
         )
-
-        if not receipts.exists():
-            raise GraphQLError('No receipts found for given date range.')
 
         total_cost = receipts.aggregate(
             Sum('cost'))['cost__sum'] or Decimal('0')
@@ -610,7 +613,8 @@ class CreateReceipt(graphene.Mutation):
                 input_tags = [tag.strip() for tag in receipt_data.tags]
                 for input_tag in input_tags:
                     tag = Tag.objects.get_or_create(
-                        tag_name=input_tag
+                        tag_name=input_tag,
+                        user_id=user_id
                     )[0]
                     receipt_instance.tags.add(tag)
         except Exception as e:
@@ -628,6 +632,7 @@ class UpdateReceipt(graphene.Mutation):
     @login_required
     @is_owner_or_superuser('receipt')
     def mutate(root, info, **kwargs):
+        user_id = kwargs.get('auth_user_id')
         receipt_instance = kwargs.get('receipt_instance')
         receipt_data = kwargs.get('receipt_data')
 
@@ -647,7 +652,7 @@ class UpdateReceipt(graphene.Mutation):
             if receipt_data.tags:
                 tags = [tag.strip() for tag in receipt_data.tags]
                 for tag in tags:
-                    tag_id = Tag.objects.get_or_create(tag_name=tag)[0]
+                    tag_id = Tag.objects.get_or_create(tag_name=tag, user_id=user_id)[0]
                     tag_ids.append(tag_id)
             receipt_instance.tags.set(tag_ids)
             receipt_instance.save()
@@ -685,32 +690,59 @@ class TagType(DjangoObjectType):
 
 
 class TagQuery(ObjectType):
-    tag = graphene.Field(TagType, id=graphene.ID(required=True))
-    all_tags = graphene.List(TagType)
+    tag = graphene.Field(TagType, tag_id=graphene.ID(required=True))
+    all_tags = graphene.List(TagType, user_id=graphene.ID(required=False), sort_by=graphene.List(graphene.String, required=False))
+    all_users_tags = graphene.List(TagType, sort_by=graphene.List(graphene.String, required=False))
 
-    def resolve_tag(self, info, id):
+    @login_required
+    @is_owner_or_superuser('tag')
+    def resolve_tag(self, info, **kwargs):
+        tag_instance = kwargs.get('tag_instance')
         try:
-            return Tag.objects.get(pk=id)
+            return tag_instance
         except Tag.DoesNotExist:
             raise GraphQLError(f'Tag with id: {id} not found.')
-
+    @is_superuser
     def resolve_all_tags(self, info, **kwargs):
+        user_id = kwargs.get('user_id')
+        sort_by = kwargs.get('sort_by')
         tags = Tag.objects.all()
+        if user_id:
+            tags = tags.filter(user_id=user_id)
+        if sort_by:
+            tags = sort_dataset(tags, sort_by)
         if not tags.exists():
             raise GraphQLError('No tags found.')
+        return tags
+    @login_required
+    def resolve_all_users_tags(self, info, **kwargs):
+        user_id = kwargs.get('auth_user_id')
+        sort_by = kwargs.get('sort_by')
+        tags = Tag.objects.all().filter(user_id=user_id)
+        if not tags:
+            raise GraphQLError('No tags found')
+        if sort_by:
+            tags = sort_dataset(tags, sort_by)
         return tags
 
 
 class CreateTag(graphene.Mutation):
     class Arguments:
         tag_name = graphene.String(required=True)
+        
 
     tag = graphene.Field(TagType)
 
-    def mutate(root, info, tag_name):
+    @login_required
+    def mutate(root, info, **kwargs):
+        user_id = kwargs.get('auth_user_id')
+        tag_name = kwargs.get('tag_name')
         tag_instance = Tag(
-            tag_name
+            tag_name=tag_name,
+            user_id=user_id
         )
+        if Tag.objects.filter(tag_name=tag_name,user_id=user_id).exists():
+            raise GraphQLError('Tag already exist')
         try:
             tag_instance.save()
         except Exception as e:
@@ -720,18 +752,20 @@ class CreateTag(graphene.Mutation):
 
 class UpdateTag(graphene.Mutation):
     class Arguments:
-        id = graphene.ID(required=True)
+        tag_id = graphene.ID(required=True)
         tag_name = graphene.ID(required=True)
 
     tag = graphene.Field(TagType)
 
-    def mutate(root, info, id, tag_name):
-        try:
-            tag_instance = Tag.objects.get(pk=id)
-        except Tag.DoesNotExist:
-            raise GraphQLError(f'Tag with id: {id} does not exist')
-
+    @login_required
+    @is_owner_or_superuser('tag')
+    def mutate(root, info, **kwargs):
+        tag_id = kwargs['tag_id']
+        tag_name = kwargs['tag_name']
+        tag_instance = kwargs['tag_instance']
+        user_id = kwargs.get('auth_user_id')
         tag_instance.tag_name = tag_name
+        tag_instance.user_id = user_id
         try:
             tag_instance.save()
         except Exception as e:
@@ -741,14 +775,16 @@ class UpdateTag(graphene.Mutation):
 
 class DeleteTag(graphene.Mutation):
     class Arguments:
-        id = graphene.ID(required=True)
+        tag_id = graphene.ID(required=True)
 
     success = graphene.Boolean()
 
-    def mutate(root, info, id):
+    @login_required
+    @is_owner_or_superuser('tag')
+    def mutate(root, info, **kwargs):
+        tag_instance = kwargs.get('tag_instance')
         try:
-            tag = Tag.objects.get(id=id)
-            tag.delete()
+            tag_instance.delete()
             return DeleteTag(success=True)
         except Tag.DoesNotExist:
             raise GraphQLError(f'Tag with id: {id} does not exist')

@@ -61,6 +61,8 @@ class Receipt(models.Model):
 class Tag(models.Model):
     tag_name = models.CharField(max_length=255)
 
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+
     class meta:
         ordering = ['tag_name']
 
