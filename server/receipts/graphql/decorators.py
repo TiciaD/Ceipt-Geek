@@ -24,14 +24,12 @@ def login_required(func):
             raise GraphQLError("Invalid Authorization token format")
         
         token = authorization_header.split()[1]
-        print("token", token)
         try:
             payload = pyjwt.decode(
                 token,
                 settings.GRAPHQL_JWT["JWT_SECRET_KEY"],
                 algorithms=['HS256']
             )
-            print("payload", payload)
             user_id = payload.get('user_id')
             if str(user_id) != str(user.id):
                 raise GraphQLError('Token does not belong to logged in user')
