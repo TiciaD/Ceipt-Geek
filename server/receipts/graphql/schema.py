@@ -318,29 +318,25 @@ class DecimalType(graphene.Scalar):
 
 
 
-# class ReceiptType(DjangoObjectType):
-#     cost = DecimalType()
-#     tax = DecimalType()
+class ReceiptType(DjangoObjectType):
+    cost = DecimalType()
+    tax = DecimalType()
 
-#     class Meta:
-#         fields = "__all__"
-#         model = Receipt
+    class Meta:
+        fields = "__all__"
+        model = Receipt
 
 class ReceiptNode(DjangoObjectType):
     class Meta:
         model = Receipt
         filter_fields = ['user']
         interfaces = (relay.Node, )
-
-class ReceiptConnection(relay.Connection):
-    class Meta:
-        node = ReceiptNode
-
+        
     def resolve_receipt_image(self, info):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
-
+    
 
 class ReceiptQuery(ObjectType):
     # receipt = graphene.Field(
@@ -354,7 +350,7 @@ class ReceiptQuery(ObjectType):
     receipt = relay.Node.Field(ReceiptNode, receipt_id=graphene.ID(required=True))
 
     all_receipts = DjangoFilterConnectionField(
-        ReceiptConnection,
+        ReceiptNode,
         sort_by=graphene.String(), 
         user_id=graphene.ID(required=False)
         )
@@ -388,7 +384,7 @@ class ReceiptQuery(ObjectType):
         return receipt
 
     @login_required
-    @is_superuser
+    # @is_superuser
     def resolve_all_receipts(self, info, **kwargs):
         user_id = kwargs.get('user_id')
 
