@@ -23,7 +23,6 @@ function Footer() {
         }}
       >
         <Typography color={"white"}>
-          Ticia |
           <Link
             href="https://www.linkedin.com/in/ticia-dunn/"
             underline="hover"
@@ -34,11 +33,10 @@ function Footer() {
               alignSelf: { md: "center" },
             }}
           >
-            LinkedIn
+            Ticia
           </Link>
         </Typography>
         <Typography color={"white"}>
-          Joe |
           <Link
             href="https://www.linkedin.com/in/joe-needham/"
             underline="hover"
@@ -49,11 +47,10 @@ function Footer() {
               alignSelf: { md: "center" },
             }}
           >
-            LinkedIn
+            Joe
           </Link>
         </Typography>
         <Typography color={"white"}>
-          Richard |
           <Link
             href="https://www.linkedin.com/in/richard-zhiyuan-zhang/"
             underline="hover"
@@ -64,7 +61,7 @@ function Footer() {
               alignSelf: { md: "center" },
             }}
           >
-            LinkedIn
+            Richard
           </Link>
         </Typography>
       </Box>
@@ -76,6 +73,7 @@ function Footer() {
             underline="hover"
             href="https://www.chingu.io/howItWorks"
             color="inherit"
+            fontWeight={500}
           >
             here
           </Link>{" "}
