@@ -6,7 +6,7 @@ function Footer() {
     <Box component="footer" sx={{ p: 4, backgroundColor: "primary.main" }}>
       <Typography
         variant="h6"
-        color='white'
+        color="white"
         gutterBottom
         sx={{ textAlign: { md: "center" } }}
       >
@@ -23,8 +23,9 @@ function Footer() {
         }}
       >
         <Typography color={"white"}>
+          Ticia |
           <Link
-            href="#"
+            href="https://www.linkedin.com/in/ticia-dunn/"
             underline="hover"
             color="inherit"
             sx={{
@@ -33,12 +34,13 @@ function Footer() {
               alignSelf: { md: "center" },
             }}
           >
-            Teammate LinkedIn #1
+            LinkedIn
           </Link>
         </Typography>
         <Typography color={"white"}>
+          Joe |
           <Link
-            href="#"
+            href="https://www.linkedin.com/in/joe-needham/"
             underline="hover"
             color="inherit"
             sx={{
@@ -47,12 +49,13 @@ function Footer() {
               alignSelf: { md: "center" },
             }}
           >
-            Teammate LinkedIn #2
+            LinkedIn
           </Link>
         </Typography>
         <Typography color={"white"}>
+          Richard |
           <Link
-            href="#"
+            href="https://www.linkedin.com/in/richard-zhiyuan-zhang/"
             underline="hover"
             color="inherit"
             sx={{
@@ -61,13 +64,13 @@ function Footer() {
               alignSelf: { md: "center" },
             }}
           >
-            Teammate LinkedIn #3
+            LinkedIn
           </Link>
         </Typography>
       </Box>
       <Box sx={{ mt: 5, textAlign: "center" }}>
         <Typography color={"white"}>
-          &copy; 2022 Ceipt-Tracker is a web app created by a team of volunteers
+          &copy; 2023 Ceipt Geek is a web app created by a team of volunteers
           from Chingu, using NextJS and Django. Click{" "}
           <Link
             underline="hover"
