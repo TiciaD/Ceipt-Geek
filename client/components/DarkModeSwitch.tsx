@@ -3,6 +3,7 @@ import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import { useMediaQuery } from "@mui/material";
+import { useEffect, useState } from "react";
 
 // https://mui.com/material-ui/react-switch/
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
@@ -58,6 +59,33 @@ interface DarkModeSwitchProps {
 
 export default function DarkModeSwitch({ toggleTheme }: DarkModeSwitchProps) {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  const [checked, setChecked] = useState<boolean>(prefersDarkMode);
+
+  useEffect(() => {
+    let storedTheme = null;
+    if (typeof window !== "undefined") {
+      storedTheme = localStorage.getItem("ceipt-geek-theme") || null;
+    }
+
+    if (storedTheme !== null && (storedTheme === "dark" || "light")) {
+      if (storedTheme === "dark") {
+        setChecked(true);
+      } else {
+        setChecked(false)
+      }
+    } else {
+      setChecked(prefersDarkMode);
+    }
+  }, [prefersDarkMode]);
+
+  const toggleButtonState = () => {
+    const newCheckedState = !checked;
+    setChecked(newCheckedState);
+    localStorage.setItem(
+      "ceipt-geek-theme",
+      newCheckedState ? "dark" : "light"
+    );
+  };
 
   return (
     <FormGroup>
@@ -65,8 +93,11 @@ export default function DarkModeSwitch({ toggleTheme }: DarkModeSwitchProps) {
         control={
           <MaterialUISwitch
             sx={{ m: 1 }}
-            onClick={toggleTheme}
-            defaultChecked={prefersDarkMode}
+            onClick={() => {
+              toggleTheme();
+              toggleButtonState();
+            }}
+            checked={checked}
           />
         }
         label=""
