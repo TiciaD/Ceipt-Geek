@@ -7,14 +7,14 @@
 
 ## Description
 
- Ceipt Geek **(WIP)** helps you organize your receipts by providing a convenient place for you to upload, edit, and view your receipts online.  
+Ceipt Geek **(WIP)** helps you organize your receipts by providing a convenient place for you to upload, edit, and view your receipts online.  
 
 
 ## <a id="usage"></a>Usage
 
 **This application is deployed to Render, and you can access it [here](https://ceipt-geek.onrender.com/).**
 
- > Since our application is deployed using Render's free tier, please be aware that it can take a few minutes for the application to load. We apologize for the inconvenience and appreciate your understanding!
+> Since our application is deployed using Render's free tier, please be aware that it can take a few minutes for the application to load. We apologize for the inconvenience and appreciate your understanding!
 
 
 ## <a id="license"></a>License
