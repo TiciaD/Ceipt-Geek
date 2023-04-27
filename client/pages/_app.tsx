@@ -1,12 +1,17 @@
-import React, { createContext} from "react";
+import React, { createContext } from "react";
 import "../styles/globals.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
 import { CssBaseline } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
-import { setContext } from '@apollo/client/link/context';
+import {
+  ApolloProvider,
+  ApolloClient,
+  InMemoryCache,
+  createHttpLink,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
 import Layout from "../components/Layout";
 
 export const ColorModeContext = createContext({
@@ -97,13 +102,13 @@ const httpLink = createHttpLink({
 
 export const AUTH_TOKEN = "ceipt-geek-auth-token";
 const authLink = setContext((_, { headers }) => {
-  let token = localStorage.getItem(AUTH_TOKEN) || '';
+  let token = localStorage.getItem(AUTH_TOKEN) || "";
   if (token) token = JSON.parse(token);
   return {
     headers: {
       ...headers,
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    },
   };
 });
 
@@ -116,6 +121,7 @@ function App({ Component, pageProps }: AppProps) {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const defaultTheme = prefersDarkMode ? "dark" : "light";
   const defaultActiveTheme = prefersDarkMode ? darkTheme : lightTheme;
+
   const [activeTheme, setActiveTheme] = useState(defaultActiveTheme);
   const [selectedTheme, setSelectedTheme] = useState<Theme>(defaultTheme);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
@@ -125,16 +131,23 @@ function App({ Component, pageProps }: AppProps) {
   }
 
   const toggleTheme: React.MouseEventHandler<HTMLButtonElement> = () => {
-    const desiredTheme = selectedTheme === "light" ? "dark" : "light";
-
-    setSelectedTheme(desiredTheme);
+    setSelectedTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
   };
 
   useEffect(() => {
-    if (prefersDarkMode) {
-      setSelectedTheme("dark");
+    let storedTheme = null;
+    if (typeof window !== "undefined") {
+      storedTheme = localStorage.getItem("ceipt-geek-theme") || null;
+    }
+
+    if (storedTheme !== null && (storedTheme === "dark" || "light")) {
+      setSelectedTheme(storedTheme as Theme);
     } else {
-      setSelectedTheme("light");
+      if (prefersDarkMode) {
+        setSelectedTheme("dark");
+      } else {
+        setSelectedTheme("light");
+      }
     }
   }, [prefersDarkMode]);
 
@@ -157,16 +170,16 @@ function App({ Component, pageProps }: AppProps) {
 
   return (
     <ColorModeContext.Provider value={colorMode}>
-       <AuthContext.Provider value={authContextValues}>
-          <ThemeProvider theme={activeTheme}>
-            <CssBaseline />
-            <Layout>
-              <ApolloProvider client={client}>
-                <Component {...pageProps} toggleTheme={toggleTheme} />
-              </ApolloProvider>
-            </Layout>
-          </ThemeProvider>
-       </AuthContext.Provider>
+      <AuthContext.Provider value={authContextValues}>
+        <ThemeProvider theme={activeTheme}>
+          <CssBaseline />
+          <Layout>
+            <ApolloProvider client={client}>
+              <Component {...pageProps} toggleTheme={toggleTheme} />
+            </ApolloProvider>
+          </Layout>
+        </ThemeProvider>
+      </AuthContext.Provider>
     </ColorModeContext.Provider>
   );
 }
