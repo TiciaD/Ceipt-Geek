@@ -1,53 +1,50 @@
 import React, { useState, useRef } from "react";
-import Modal from "@mui/material/Modal";
+import Camera from "react-html5-camera-photo";
+import "react-html5-camera-photo/build/css/index.css";
 import Button from "@mui/material/Button";
-import Box from "@mui/material/Box";
+// import Modal from "@mui/material/Modal";
+// import Box from "@mui/material/Box";
 
 const FormWithPhoto = () => {
   const [photo, setPhoto] = useState<File | null>(null);
-  const [open, setOpen] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [dataUri, setDataUri] = useState("");
 
   const handlePhotoUpload = (event: any) => {
     const file = event.target.files[0];
     setPhoto(file);
   };
 
-  const handleTakePhoto = async () => {
-    setOpen(true);
-    await new Promise((resolve) => setTimeout(resolve, 100)); 
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    streamRef.current = stream;
-    const video = videoRef.current!;
-    video.srcObject = stream;
-    video.play();
+  const handleTakePhotoAnimationDone = async (dataUri: any) => {
+    console.log("takePhoto");
+    console.log(dataUri);
+    setDataUri(dataUri);
   };
 
-  const handleCapture = async () => {
-    const video = videoRef.current!;
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const context = canvas.getContext("2d")!;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const photo = canvas.toDataURL("image/png");
-    if (photo) {
-      setPhoto(
-        new File([await dataURLtoBlob(photo)], "capturedImage.png", {
-          type: "image/png",
-        })
-      );
-    }
-    setOpen(false);
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-  };
+  // const handleCapture = async () => {
+  //   const video = videoRef.current!;
+  //   const canvas = document.createElement("canvas");
+  //   canvas.width = video.videoWidth;
+  //   canvas.height = video.videoHeight;
+  //   const context = canvas.getContext("2d")!;
+  //   context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  //   const photo = canvas.toDataURL("image/png");
+  //   if (photo) {
+  //     setPhoto(
+  //       new File([await dataURLtoBlob(photo)], "capturedImage.png", {
+  //         type: "image/png",
+  //       })
+  //     );
+  //   }
+  //   setOpen(false);
+  //   streamRef.current?.getTracks().forEach((track) => track.stop());
+  // };
 
-  const dataURLtoBlob = async (dataURL: string) => {
-    const response = await fetch(dataURL);
-    const blob = await response.blob();
-    return blob;
-  };
+  // const dataURLtoBlob = async (dataURL: string) => {
+  //   const response = await fetch(dataURL);
+  //   const blob = await response.blob();
+  //   return blob;
+  // };
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
@@ -59,54 +56,137 @@ const FormWithPhoto = () => {
       <input type="file" accept="image/*" onChange={handlePhotoUpload} />
       <br />
       <br />
-      <Button variant="contained" color="primary" onClick={handleTakePhoto}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => {
+          setCameraOpen(true);
+        }}
+      >
         Take Photo
       </Button>
       <br />
       {photo && <img src={URL.createObjectURL(photo)} alt="Preview" />}
       <br />
       <Button type="submit">Submit</Button>
-      <Modal
-        open={open}
-        onClose={() => {
-          setOpen(false);
-          streamRef.current?.getTracks().forEach((track) => track.stop());
-        }}
-      >
-        <Box
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "#fff",
-            padding: "20px",
-            borderRadius: "5px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <video
-            style={{ width: "640px", height: "480px" }}
-            autoPlay
-            ref={videoRef}
-          ></video>
-          <Button
-            style={{ margin: "10px" }}
-            variant="contained"
-            color="primary"
-            onClick={handleCapture}
-          >
-            Capture
-          </Button>
-        </Box>
-      </Modal>
+      {dataUri ? (
+        <ImagePreview dataUri={dataUri} isFullscreen={true} />
+      ) : (
+        <Camera
+          onTakePhotoAnimationDone={handleTakePhotoAnimationDone}
+          isFullscreen={true}
+        />
+      )}
     </form>
   );
 };
 
 export default FormWithPhoto;
+
+// const FormWithPhoto = () => {
+//   const [photo, setPhoto] = useState<File | null>(null);
+//   const [open, setOpen] = useState(false);
+//   const videoRef = useRef<HTMLVideoElement>(null);
+//   const streamRef = useRef<MediaStream | null>(null);
+
+//   const handlePhotoUpload = (event: any) => {
+//     const file = event.target.files[0];
+//     setPhoto(file);
+//   };
+
+//   const handleTakePhoto = async () => {
+//     setOpen(true);
+//     await new Promise((resolve) => setTimeout(resolve, 100));
+//     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+//     streamRef.current = stream;
+//     const video = videoRef.current!;
+//     video.srcObject = stream;
+//     video.play();
+//   };
+
+//   const handleCapture = async () => {
+//     const video = videoRef.current!;
+//     const canvas = document.createElement("canvas");
+//     canvas.width = video.videoWidth;
+//     canvas.height = video.videoHeight;
+//     const context = canvas.getContext("2d")!;
+//     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+//     const photo = canvas.toDataURL("image/png");
+//     if (photo) {
+//       setPhoto(
+//         new File([await dataURLtoBlob(photo)], "capturedImage.png", {
+//           type: "image/png",
+//         })
+//       );
+//     }
+//     setOpen(false);
+//     streamRef.current?.getTracks().forEach((track) => track.stop());
+//   };
+
+//   const dataURLtoBlob = async (dataURL: string) => {
+//     const response = await fetch(dataURL);
+//     const blob = await response.blob();
+//     return blob;
+//   };
+
+//   const handleSubmit = async (event: any) => {
+//     event.preventDefault();
+//     console.log("photo", photo);
+//   };
+
+//   return (
+//     <form onSubmit={handleSubmit}>
+//       <input type="file" accept="image/*" onChange={handlePhotoUpload} />
+//       <br />
+//       <br />
+//       <Button variant="contained" color="primary" onClick={handleTakePhoto}>
+//         Take Photo
+//       </Button>
+//       <br />
+//       {photo && <img src={URL.createObjectURL(photo)} alt="Preview" />}
+//       <br />
+//       <Button type="submit">Submit</Button>
+//       <Modal
+//         open={open}
+//         onClose={() => {
+//           setOpen(false);
+//           streamRef.current?.getTracks().forEach((track) => track.stop());
+//         }}
+//       >
+//         <Box
+//           style={{
+//             position: "absolute",
+//             top: "50%",
+//             left: "50%",
+//             transform: "translate(-50%, -50%)",
+//             backgroundColor: "#fff",
+//             padding: "20px",
+//             borderRadius: "5px",
+//             display: "flex",
+//             flexDirection: "column",
+//             alignItems: "center",
+//           }}
+//         >
+//           <video
+//             style={{ width: "640px", height: "480px" }}
+//             autoPlay
+//             ref={videoRef}
+//           ></video>
+//           <Button
+//             style={{ margin: "10px" }}
+//             variant="contained"
+//             color="primary"
+//             onClick={handleCapture}
+//           >
+//             Capture
+//           </Button>
+//         </Box>
+//       </Modal>
+//     </form>
+//   );
+// };
+
+// export default FormWithPhoto;
 
 // import React, { useState } from "react";
 
