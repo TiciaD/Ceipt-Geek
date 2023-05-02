@@ -13,7 +13,11 @@ export interface GroupedReceipt {
 }
 
 export default function Dashboard() {
-  const allReceipts = useAllReceiptsByUserQuery();
+  const allReceipts = useAllReceiptsByUserQuery({
+    variables: {
+      first: 10, // replace with the desired value
+    },
+  });
 
   // Get current date
   const currentDate = new Date();
