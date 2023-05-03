@@ -4,12 +4,12 @@ import {
   CardContent, 
   Typography 
 } from "@mui/material";
-import { ReceiptType, useAllReceiptsByUserQuery, useTotalExpenditureByDateQuery } from "../graphql/generated/graphql";
+import { ReceiptNodeEdge, useAllReceiptsByUserQuery, useTotalExpenditureByDateQuery } from "../graphql/generated/graphql";
 import DashboardTable from "./DashboardTable";
 
 export interface GroupedReceipt {
   date: string;
-  receipts: ReceiptType[];
+  receipts: ReceiptNodeEdge[];
 }
 
 export default function Dashboard() {
@@ -49,17 +49,17 @@ export default function Dashboard() {
     return <p>Error {allReceipts.error.message}</p>
   }
 
-  let receipts = allReceipts.data?.allReceiptsByUser as ReceiptType[];
+  let receipts = allReceipts.data?.allReceiptsByUser?.edges as ReceiptNodeEdge[];
   // Group receipts by date
-  const groupedReceipts = receipts ? receipts.reduce((accumulator: GroupedReceipt[], currentValue: ReceiptType) => {
+  const groupedReceipts = receipts ? receipts.reduce((accumulator: GroupedReceipt[], currentValue: ReceiptNodeEdge) => {
     const existingReceipts = accumulator.find(
-      (item) => item.date === currentValue.date
+      (item) => item.date === currentValue.node?.date
     );
     if (existingReceipts) {
       existingReceipts.receipts.push(currentValue);
     } else {
       accumulator.push({
-        date: currentValue.date,
+        date: currentValue.node?.date,
         receipts: [currentValue],
       });
     }
