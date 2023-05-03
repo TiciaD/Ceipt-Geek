@@ -10,21 +10,32 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
-  Modal
+  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 
 import EditIcon from "@mui/icons-material/Edit";
-import UpdateEmailForm from "../../forms/UpdateEmailForm"
+import UpdateEmailForm from "../../forms/UpdateEmailForm";
 
 const ProfilePage = () => {
   const theme = useTheme();
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [emailModalIsOpen, setEmailModalIsOpen] = useState(false);
+  const [passwordModalIsOpen, setPasswordModalIsOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("md"));
 
   const handleEmailModalOpen = () => setEmailModalIsOpen(true);
   const handleEmailModalClose = () => setEmailModalIsOpen(false);
+  const handlePasswordModalOpen = () => setPasswordModalIsOpen(true);
+  const handlePasswordModalClose = () => setPasswordModalIsOpen(false);
+  const handleDeletingAccountOpen = () => setIsDeletingAccount(true);
+  const handleDeletingAccountClose = () => setIsDeletingAccount(false);
 
   return (
     <>
@@ -272,6 +283,7 @@ const ProfilePage = () => {
                 fontSize: "12px",
               },
             }}
+            onClick={handlePasswordModalOpen}
           >
             Update Password
           </Button>
@@ -286,29 +298,84 @@ const ProfilePage = () => {
                 fontSize: "12px",
               },
             }}
+            onClick={handleDeletingAccountOpen}
           >
             Delete Account
           </Button>
         </Box>
       </Box>
+
       <Modal
         open={emailModalIsOpen}
         onClose={handleEmailModalClose}
         aria-labelledby="update email modal"
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 500,
-          height: 500,
-          boxShadow: 24,
-          bgcolor: "background.paper",
-          padding: "2rem",
-        }}
       >
-        <UpdateEmailForm />
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 500,
+            height: 500,
+            boxShadow: 24,
+            bgcolor: "background.paper",
+            padding: "2rem",
+          }}
+        >
+          <UpdateEmailForm />
+        </Box>
       </Modal>
+
+      <Modal
+        open={passwordModalIsOpen}
+        onClose={handlePasswordModalClose}
+        aria-labelledby="update password modal"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 500,
+            height: 500,
+            boxShadow: 24,
+            bgcolor: "background.paper",
+            padding: "2rem",
+          }}
+        >
+          Password Form
+        </Box>
+      </Modal>
+
+      <Dialog
+        open={isDeletingAccount}
+        onClose={handleDeletingAccountClose}
+        aria-labelledby="confirm delete account dialog"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Are you sure you want to delete your account?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Deleting your account is an irreversible action, and all data
+            associated with your account will be lost.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeletingAccountClose} color="error">
+            Delete My Account
+          </Button>
+          <Button
+            onClick={handleDeletingAccountClose}
+            color="success"
+            autoFocus
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };
