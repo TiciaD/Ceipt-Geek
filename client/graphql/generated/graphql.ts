@@ -100,7 +100,7 @@ export type MutationDeleteReceiptArgs = {
 
 
 export type MutationDeleteTagArgs = {
-  id: Scalars['ID'];
+  tagId: Scalars['ID'];
 };
 
 
@@ -117,7 +117,7 @@ export type MutationUpdateReceiptArgs = {
 
 
 export type MutationUpdateTagArgs = {
-  id: Scalars['ID'];
+  tagId: Scalars['ID'];
   tagName: Scalars['ID'];
 };
 
@@ -128,13 +128,33 @@ export type MutationUpdateUserArgs = {
   username?: InputMaybe<Scalars['String']>;
 };
 
+/** An object with an ID */
+export type Node = {
+  /** The ID of the object */
+  id: Scalars['ID'];
+};
+
+/** The Relay compliant `PageInfo` type, containing data necessary to paginate this connection. */
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  /** When paginating forwards, the cursor to continue. */
+  endCursor?: Maybe<Scalars['String']>;
+  /** When paginating forwards, are there more items? */
+  hasNextPage: Scalars['Boolean'];
+  /** When paginating backwards, are there more items? */
+  hasPreviousPage: Scalars['Boolean'];
+  /** When paginating backwards, the cursor to continue. */
+  startCursor?: Maybe<Scalars['String']>;
+};
+
 export type Query = {
   __typename?: 'Query';
-  allReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
-  allReceiptsByUser?: Maybe<Array<Maybe<ReceiptType>>>;
+  allReceipts?: Maybe<ReceiptNodeConnection>;
+  allReceiptsByUser?: Maybe<ReceiptNodeConnection>;
   allTags?: Maybe<Array<Maybe<TagType>>>;
   allUsers?: Maybe<Array<Maybe<UserType>>>;
-  filteredReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
+  allUsersTags?: Maybe<Array<Maybe<TagType>>>;
+  filteredReceipts?: Maybe<ReceiptNodeConnection>;
   getUser?: Maybe<UserType>;
   receipt?: Maybe<ReceiptType>;
   tag?: Maybe<TagType>;
@@ -144,22 +164,63 @@ export type Query = {
 
 
 export type QueryAllReceiptsArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+  user?: InputMaybe<Scalars['ID']>;
   userId?: InputMaybe<Scalars['ID']>;
 };
 
 
+export type QueryAllReceiptsByUserArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+  user?: InputMaybe<Scalars['ID']>;
+};
+
+
+export type QueryAllTagsArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+  userId?: InputMaybe<Scalars['ID']>;
+};
+
+
+export type QueryAllUsersArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+};
+
+
+export type QueryAllUsersTagsArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+};
+
+
 export type QueryFilteredReceiptsArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
   costGte?: InputMaybe<Scalars['DecimalType']>;
   costLte?: InputMaybe<Scalars['DecimalType']>;
   dateGte?: InputMaybe<Scalars['Date']>;
   dateLte?: InputMaybe<Scalars['Date']>;
   expense?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
   notes?: InputMaybe<Scalars['String']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   storeName?: InputMaybe<Scalars['String']>;
   tagsContainsAll?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   tagsContainsAny?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   taxGte?: InputMaybe<Scalars['DecimalType']>;
   taxLte?: InputMaybe<Scalars['DecimalType']>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 
@@ -170,12 +231,12 @@ export type QueryGetUserArgs = {
 
 
 export type QueryReceiptArgs = {
-  receiptId: Scalars['ID'];
+  receiptId: Scalars['String'];
 };
 
 
 export type QueryTagArgs = {
-  id: Scalars['ID'];
+  tagId: Scalars['ID'];
 };
 
 
@@ -193,6 +254,39 @@ export type ReceiptInput = {
   storeName: Scalars['String'];
   tags?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   tax: Scalars['DecimalType'];
+};
+
+export type ReceiptNode = Node & {
+  __typename?: 'ReceiptNode';
+  cost?: Maybe<Scalars['DecimalType']>;
+  date: Scalars['Date'];
+  expense: ReceiptsReceiptExpenseChoices;
+  id: Scalars['ID'];
+  notes?: Maybe<Scalars['String']>;
+  receiptImage?: Maybe<Scalars['String']>;
+  /** Relay ID */
+  relayId?: Maybe<Scalars['ID']>;
+  storeName: Scalars['String'];
+  tags: Array<TagType>;
+  tax?: Maybe<Scalars['DecimalType']>;
+  user: UserType;
+};
+
+export type ReceiptNodeConnection = {
+  __typename?: 'ReceiptNodeConnection';
+  /** Contains the nodes in this connection. */
+  edges: Array<Maybe<ReceiptNodeEdge>>;
+  /** Pagination data for this connection. */
+  pageInfo: PageInfo;
+};
+
+/** A Relay edge containing a `ReceiptNode` and its cursor. */
+export type ReceiptNodeEdge = {
+  __typename?: 'ReceiptNodeEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String'];
+  /** The item at the end of the edge */
+  node?: Maybe<ReceiptNode>;
 };
 
 export type ReceiptType = {
@@ -260,8 +354,19 @@ export type ReceiptsReceiptExpenseChoices =
 export type TagType = {
   __typename?: 'TagType';
   id: Scalars['ID'];
-  receiptSet: Array<ReceiptType>;
+  receiptSet: ReceiptNodeConnection;
   tagName: Scalars['String'];
+  user: UserType;
+};
+
+
+export type TagTypeReceiptSetArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 export type UpdateReceipt = {
@@ -293,9 +398,20 @@ export type UserType = {
   isSuperuser: Scalars['Boolean'];
   lastLogin?: Maybe<Scalars['DateTime']>;
   lastName: Scalars['String'];
-  receiptSet: Array<ReceiptType>;
+  receiptSet: ReceiptNodeConnection;
+  tagSet: Array<TagType>;
   /** Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
   username: Scalars['String'];
+};
+
+
+export type UserTypeReceiptSetArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 export type CreateAccountMutationVariables = Exact<{
@@ -315,10 +431,13 @@ export type AuthMutationVariables = Exact<{
 
 export type AuthMutation = { __typename?: 'Mutation', login?: { __typename?: 'LoginMutation', token?: string | null, success?: boolean | null } | null };
 
-export type AllReceiptsByUserQueryVariables = Exact<{ [key: string]: never; }>;
+export type AllReceiptsByUserQueryVariables = Exact<{
+  first: Scalars['Int'];
+  after?: InputMaybe<Scalars['String']>;
+}>;
 
 
-export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: Array<{ __typename?: 'ReceiptType', id: string, storeName: string, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, tags: Array<{ __typename?: 'TagType', id: string, tagName: string }> } | null> | null };
+export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: { __typename?: 'ReceiptNodeConnection', edges: Array<{ __typename?: 'ReceiptNodeEdge', cursor: string, node?: { __typename?: 'ReceiptNode', id: string, storeName: string, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, tags: Array<{ __typename?: 'TagType', id: string, tagName: string }> } | null } | null>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } | null };
 
 export type TotalExpenditureByDateQueryVariables = Exact<{
   dateGte: Scalars['Date'];
@@ -407,16 +526,25 @@ export type AuthMutationHookResult = ReturnType<typeof useAuthMutation>;
 export type AuthMutationResult = Apollo.MutationResult<AuthMutation>;
 export type AuthMutationOptions = Apollo.BaseMutationOptions<AuthMutation, AuthMutationVariables>;
 export const AllReceiptsByUserDocument = gql`
-    query AllReceiptsByUser {
-  allReceiptsByUser {
-    id
-    storeName
-    cost
-    date
-    expense
-    tags {
-      id
-      tagName
+    query AllReceiptsByUser($first: Int!, $after: String) {
+  allReceiptsByUser(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        storeName
+        cost
+        date
+        expense
+        tags {
+          id
+          tagName
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
     }
   }
 }
@@ -434,10 +562,12 @@ export const AllReceiptsByUserDocument = gql`
  * @example
  * const { data, loading, error } = useAllReceiptsByUserQuery({
  *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useAllReceiptsByUserQuery(baseOptions?: Apollo.QueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
+export function useAllReceiptsByUserQuery(baseOptions: Apollo.QueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
       }
@@ -529,18 +659,54 @@ export type MutationFieldPolicy = {
 	updateTag?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateUser?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'filteredReceipts' | 'getUser' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
+export type NodeKeySpecifier = ('id' | NodeKeySpecifier)[];
+export type NodeFieldPolicy = {
+	id?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type PageInfoKeySpecifier = ('endCursor' | 'hasNextPage' | 'hasPreviousPage' | 'startCursor' | PageInfoKeySpecifier)[];
+export type PageInfoFieldPolicy = {
+	endCursor?: FieldPolicy<any> | FieldReadFunction<any>,
+	hasNextPage?: FieldPolicy<any> | FieldReadFunction<any>,
+	hasPreviousPage?: FieldPolicy<any> | FieldReadFunction<any>,
+	startCursor?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'allUsersTags' | 'filteredReceipts' | 'getUser' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
 	allReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
 	allReceiptsByUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	allTags?: FieldPolicy<any> | FieldReadFunction<any>,
 	allUsers?: FieldPolicy<any> | FieldReadFunction<any>,
+	allUsersTags?: FieldPolicy<any> | FieldReadFunction<any>,
 	filteredReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
 	getUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>,
 	tag?: FieldPolicy<any> | FieldReadFunction<any>,
 	totalExpenditureByDate?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ReceiptNodeKeySpecifier = ('cost' | 'date' | 'expense' | 'id' | 'notes' | 'receiptImage' | 'relayId' | 'storeName' | 'tags' | 'tax' | 'user' | ReceiptNodeKeySpecifier)[];
+export type ReceiptNodeFieldPolicy = {
+	cost?: FieldPolicy<any> | FieldReadFunction<any>,
+	date?: FieldPolicy<any> | FieldReadFunction<any>,
+	expense?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	notes?: FieldPolicy<any> | FieldReadFunction<any>,
+	receiptImage?: FieldPolicy<any> | FieldReadFunction<any>,
+	relayId?: FieldPolicy<any> | FieldReadFunction<any>,
+	storeName?: FieldPolicy<any> | FieldReadFunction<any>,
+	tags?: FieldPolicy<any> | FieldReadFunction<any>,
+	tax?: FieldPolicy<any> | FieldReadFunction<any>,
+	user?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ReceiptNodeConnectionKeySpecifier = ('edges' | 'pageInfo' | ReceiptNodeConnectionKeySpecifier)[];
+export type ReceiptNodeConnectionFieldPolicy = {
+	edges?: FieldPolicy<any> | FieldReadFunction<any>,
+	pageInfo?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ReceiptNodeEdgeKeySpecifier = ('cursor' | 'node' | ReceiptNodeEdgeKeySpecifier)[];
+export type ReceiptNodeEdgeFieldPolicy = {
+	cursor?: FieldPolicy<any> | FieldReadFunction<any>,
+	node?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type ReceiptTypeKeySpecifier = ('cost' | 'date' | 'expense' | 'id' | 'notes' | 'receiptImage' | 'storeName' | 'tags' | 'tax' | 'user' | ReceiptTypeKeySpecifier)[];
 export type ReceiptTypeFieldPolicy = {
@@ -555,11 +721,12 @@ export type ReceiptTypeFieldPolicy = {
 	tax?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type TagTypeKeySpecifier = ('id' | 'receiptSet' | 'tagName' | TagTypeKeySpecifier)[];
+export type TagTypeKeySpecifier = ('id' | 'receiptSet' | 'tagName' | 'user' | TagTypeKeySpecifier)[];
 export type TagTypeFieldPolicy = {
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	receiptSet?: FieldPolicy<any> | FieldReadFunction<any>,
-	tagName?: FieldPolicy<any> | FieldReadFunction<any>
+	tagName?: FieldPolicy<any> | FieldReadFunction<any>,
+	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type UpdateReceiptKeySpecifier = ('receipt' | UpdateReceiptKeySpecifier)[];
 export type UpdateReceiptFieldPolicy = {
@@ -573,7 +740,7 @@ export type UpdateUserKeySpecifier = ('user' | UpdateUserKeySpecifier)[];
 export type UpdateUserFieldPolicy = {
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type UserTypeKeySpecifier = ('dateJoined' | 'email' | 'firstName' | 'id' | 'isActive' | 'isStaff' | 'isSuperuser' | 'lastLogin' | 'lastName' | 'receiptSet' | 'username' | UserTypeKeySpecifier)[];
+export type UserTypeKeySpecifier = ('dateJoined' | 'email' | 'firstName' | 'id' | 'isActive' | 'isStaff' | 'isSuperuser' | 'lastLogin' | 'lastName' | 'receiptSet' | 'tagSet' | 'username' | UserTypeKeySpecifier)[];
 export type UserTypeFieldPolicy = {
 	dateJoined?: FieldPolicy<any> | FieldReadFunction<any>,
 	email?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -585,6 +752,7 @@ export type UserTypeFieldPolicy = {
 	lastLogin?: FieldPolicy<any> | FieldReadFunction<any>,
 	lastName?: FieldPolicy<any> | FieldReadFunction<any>,
 	receiptSet?: FieldPolicy<any> | FieldReadFunction<any>,
+	tagSet?: FieldPolicy<any> | FieldReadFunction<any>,
 	username?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type StrictTypedTypePolicies = {
@@ -624,9 +792,29 @@ export type StrictTypedTypePolicies = {
 		keyFields?: false | MutationKeySpecifier | (() => undefined | MutationKeySpecifier),
 		fields?: MutationFieldPolicy,
 	},
+	Node?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | NodeKeySpecifier | (() => undefined | NodeKeySpecifier),
+		fields?: NodeFieldPolicy,
+	},
+	PageInfo?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | PageInfoKeySpecifier | (() => undefined | PageInfoKeySpecifier),
+		fields?: PageInfoFieldPolicy,
+	},
 	Query?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | QueryKeySpecifier | (() => undefined | QueryKeySpecifier),
 		fields?: QueryFieldPolicy,
+	},
+	ReceiptNode?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ReceiptNodeKeySpecifier | (() => undefined | ReceiptNodeKeySpecifier),
+		fields?: ReceiptNodeFieldPolicy,
+	},
+	ReceiptNodeConnection?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ReceiptNodeConnectionKeySpecifier | (() => undefined | ReceiptNodeConnectionKeySpecifier),
+		fields?: ReceiptNodeConnectionFieldPolicy,
+	},
+	ReceiptNodeEdge?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ReceiptNodeEdgeKeySpecifier | (() => undefined | ReceiptNodeEdgeKeySpecifier),
+		fields?: ReceiptNodeEdgeFieldPolicy,
 	},
 	ReceiptType?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | ReceiptTypeKeySpecifier | (() => undefined | ReceiptTypeKeySpecifier),

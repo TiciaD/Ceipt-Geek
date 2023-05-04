@@ -58,17 +58,17 @@ export default function DashboardTable({ receiptGroup }: DashboardTableProps) {
         </TableHead>
         <TableBody>
           {receiptGroup.receipts.map((receipt) => (
-            <StyledTableRow key={receipt.id}>
+            <StyledTableRow key={receipt.node?.id}>
               <StyledTableCell colSpan={3} align="left">
-                <Chip label={receipt.expense} color="secondary" />
+                <Chip label={receipt.node?.expense} color="secondary" />
               </StyledTableCell>
-              <StyledTableCell colSpan={3} align="left">{receipt.storeName}</StyledTableCell>
+              <StyledTableCell colSpan={3} align="left">{receipt.node?.storeName}</StyledTableCell>
               <StyledTableCell colSpan={3} align="left">
-                {receipt.tags.map((tag) => 
+                {receipt.node?.tags.map((tag) => 
                   <Chip key={tag.id} label={tag.tagName} color="secondary" />
                 )}
               </StyledTableCell>
-              <StyledTableCell colSpan={3} align="left" sx={{color: "red"}}>-{receipt.cost}</StyledTableCell>
+              <StyledTableCell colSpan={3} align="left" sx={{color: "red"}}>-{receipt.node?.cost}</StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>

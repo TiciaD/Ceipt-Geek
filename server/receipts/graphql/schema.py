@@ -8,6 +8,9 @@ from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
 from graphene_django.types import DjangoObjectType, ObjectType
 from graphene_django.converter import convert_django_field
+from graphene import relay
+from graphql_relay import to_global_id
+from graphene_django.filter import DjangoFilterConnectionField
 
 import cloudinary.uploader
 from cloudinary.models import CloudinaryField
@@ -320,6 +323,7 @@ class DecimalType(graphene.Scalar):
         return Decimal(value)
 
 
+
 class ReceiptType(DjangoObjectType):
     cost = DecimalType()
     tax = DecimalType()
@@ -327,29 +331,50 @@ class ReceiptType(DjangoObjectType):
     class Meta:
         fields = "__all__"
         model = Receipt
-
+    
     def resolve_receipt_image(self, info):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
 
+class ReceiptNode(DjangoObjectType):
+    cost = DecimalType()
+    tax = DecimalType()
+
+    class Meta:
+        model = Receipt
+        filter_fields = ['user']
+        interfaces = (relay.Node, )
+    
+    def resolve_receipt_image(self, info):
+        if self.receipt_image:
+            self.receipt_image = self.image_url()
+        return self.receipt_image
+    
+    id = graphene.ID(source='pk', required=True)
+    relay_id = graphene.Field(graphene.ID, description="Relay ID")
+
+    def resolve_relay_id(self, info):
+        return to_global_id('ReceiptNode', self.pk)
 
 class ReceiptQuery(ObjectType):
     receipt = graphene.Field(
         ReceiptType,
-        receipt_id=graphene.ID(required=True)
+        receipt_id=graphene.String(required=True)
     )
-    all_receipts = graphene.List(
-        ReceiptType,
+
+    all_receipts = DjangoFilterConnectionField(
+        ReceiptNode,
+        sort_by=graphene.List(graphene.String, required=False),
         user_id=graphene.ID(required=False),
+        )
+    
+    all_receipts_by_user = DjangoFilterConnectionField(
+        ReceiptNode,
         sort_by=graphene.List(graphene.String, required=False)
     )
-    all_receipts_by_user = graphene.List(
-        ReceiptType,
-        sort_by=graphene.List(graphene.String, required=False)
-    )
-    filtered_receipts = graphene.List(
-        ReceiptType,
+    filtered_receipts = DjangoFilterConnectionField(
+        ReceiptNode,
         store_name=graphene.String(),
         expense=graphene.String(),
         date_gte=graphene.Date(),
@@ -368,7 +393,7 @@ class ReceiptQuery(ObjectType):
         date_lte=graphene.Date(required=True),
     )
 
-    @login_required
+    @login_required 
     @is_owner_or_superuser('receipt')
     def resolve_receipt(self, info, **kwargs):
         receipt = kwargs.get('receipt_instance')
