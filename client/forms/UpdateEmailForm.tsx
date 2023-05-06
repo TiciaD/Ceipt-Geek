@@ -10,20 +10,25 @@ import {
   OutlinedInput,
   TextField,
   Link,
-  Alert
+  Alert,
 } from "@mui/material";
+import { useFormik } from "formik";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import { useFormik } from "formik";
-import { CreateAccountSchema } from "../types/schemas";
+import { UpdateEmailSchema } from "../types/schemas";
 import { useRouter } from "next/router";
-import { useCreateAccountMutation } from "../graphql/generated/graphql";
 import { useAuth } from "../utils/useAuth";
+import { useAuthMutation } from "../graphql/generated/graphql";
+import { IPartialUser } from "../pages/profile";
 
-export default function UpdateEmailForm() {
+export default function UpdateEmailForm({
+  setUserDetails,
+}: {
+  setUserDetails: React.Dispatch<React.SetStateAction<IPartialUser>>;
+}) {
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [signup] = useCreateAccountMutation();
+  const [error, setError] = useState("");
+  const [authMutation] = useAuthMutation();
   const { login } = useAuth();
   const router = useRouter();
 
@@ -36,30 +41,28 @@ export default function UpdateEmailForm() {
 
   const formik = useFormik({
     initialValues: {
-      username: "",
       email: "",
       password: "",
     },
-    validationSchema: CreateAccountSchema,
-      onSubmit: async (values) => {
-        await signup({
-          variables: {
-            username: values.username,
-            email: values.email,
-            password: values.password
-          },
+    validationSchema: UpdateEmailSchema,
+    onSubmit: async (values) => {
+      await authMutation({
+        variables: {
+          email: values.email,
+          password: values.password,
+        },
         onCompleted: (data) => {
           if (data.login?.success === true) {
-            login(data?.login?.token || '')
-            router.push('/')
+            login(data?.login?.token || "");
+            router.push("/");
           } else {
             setError("Login Unsuccessful");
           }
         },
         onError: (error) => {
           setError(error.message);
-        }
-      })
+        },
+      });
     },
   });
 
@@ -73,34 +76,24 @@ export default function UpdateEmailForm() {
         spacing={3}
         sx={{ py: "1rem" }}
       >
-        {error && <Grid item>
-          <Alert severity="error">{error}</Alert>
-        </Grid>}
-        <Grid item>
-          <TextField
-            sx={{ width: { xs: "12rem", sm: "15rem" } }}
-            id="username"
-            name="username"
-            label="Username"
-            value={formik.values.username}
-            onChange={formik.handleChange}
-            error={formik.touched.username && Boolean(formik.errors.username)}
-            helperText={formik.touched.username && formik.errors.username}
-          />
-        </Grid>
+        {error && (
+          <Grid item>
+            <Alert severity="error">{error}</Alert>
+          </Grid>
+        )}
         <Grid item>
           <TextField
             sx={{ width: { xs: "12rem", sm: "15rem" } }}
             id="email"
             name="email"
-            label="Email"
+            label="New Email"
             value={formik.values.email}
             onChange={formik.handleChange}
             error={formik.touched.email && Boolean(formik.errors.email)}
             helperText={formik.touched.email && formik.errors.email}
           />
         </Grid>
-        <Grid item>
+        <Grid item xs={8}>
           <FormControl variant="outlined">
             <InputLabel htmlFor="password">Password</InputLabel>
             <OutlinedInput
@@ -128,7 +121,7 @@ export default function UpdateEmailForm() {
             {formik.touched.password && formik.errors.password && (
               <FormHelperText
                 error
-                id="create-account-error"
+                id="login-error"
                 sx={{ mx: 0, width: { xs: "12rem", sm: "15rem" } }}
               >
                 {formik.errors.password}
@@ -138,11 +131,8 @@ export default function UpdateEmailForm() {
         </Grid>
         <Grid item xs={8}>
           <Button type="submit" variant="contained" size="large">
-            SIGN UP
+            Update Email
           </Button>
-        </Grid>
-        <Grid item>
-            <Link href='/login'>Already have an account?</Link>
         </Grid>
       </Grid>
     </form>

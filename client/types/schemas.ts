@@ -22,3 +22,11 @@ export const LoginSchema = Yup.object({
     .required("Password is required")
     .min(8, "Password must be at least 8 characters"),
 });
+
+export const UpdateEmailSchema = Yup.object({
+  email: Yup.string()
+    .email("Valid email is required")
+    .required("Valid email is required"),
+  password: Yup.string()
+    .required("Password is required")
+});
