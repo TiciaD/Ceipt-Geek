@@ -5,6 +5,7 @@ import UpdateEmailForm from "../../forms/UpdateEmailForm";
 import UpdatePasswordForm from "../../forms/UpdatePasswordForm";
 import {
   useUpdateUsernameMutation,
+  useDeleteAccountMutation,
   useUserQuery,
 } from "../../graphql/generated/graphql";
 
@@ -28,6 +29,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
+import { useAuth } from "../../utils/useAuth";
 
 export interface IPartialUser {
   id: string;
@@ -64,7 +66,9 @@ const ProfilePage = () => {
     tagsCount: 0,
   });
 
+  const { logout } = useAuth();
   const [updateUsernameMutation] = useUpdateUsernameMutation();
+  const [deleteAccountMutation] = useDeleteAccountMutation();
 
   const theme = useTheme();
   const [isEditingUsername, setIsEditingUsername] = useState(false);
@@ -157,6 +161,24 @@ const ProfilePage = () => {
         setUsernameMutationLoading(false);
         setUsernameError(error.message);
       },
+      fetchPolicy: "network-only",
+    });
+  };
+
+  const handleDeleteAccount = async () => {
+    await deleteAccountMutation({
+      onCompleted: (data) => {
+        if (data.deleteUser?.success) {
+          logout();
+          router.replace("/");
+        } else {
+          window.alert("Account deletion unsuccessful");
+        }
+      },
+      onError: (error) => {
+        window.alert(error.message);
+      },
+      fetchPolicy: "network-only",
     });
   };
 
@@ -563,7 +585,7 @@ const ProfilePage = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeletingAccountClose} color="error">
+          <Button onClick={handleDeleteAccount} color="error">
             Delete My Account
           </Button>
           <Button

@@ -66,3 +66,11 @@ export const UPDATE_PASSWORD_MUTATION = gql`
     }
   }
 `;
+
+export const DELETE_ACCOUNT_MUTATION = gql`
+  mutation DeleteAccount {
+    deleteUser {
+      success
+    }
+  }
+`
