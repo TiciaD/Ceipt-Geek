@@ -9,28 +9,27 @@ import {
   InputLabel,
   OutlinedInput,
   TextField,
-  Link,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { useFormik } from "formik";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { UpdateEmailSchema } from "../types/schemas";
-import { useRouter } from "next/router";
-import { useAuth } from "../utils/useAuth";
-import { useAuthMutation } from "../graphql/generated/graphql";
+import { useUpdateEmailMutation } from "../graphql/generated/graphql";
 import { IPartialUser } from "../pages/profile";
 
 export default function UpdateEmailForm({
   setUserDetails,
+  setEmailModalIsOpen,
 }: {
   setUserDetails: React.Dispatch<React.SetStateAction<IPartialUser>>;
+  setEmailModalIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [authMutation] = useAuthMutation();
-  const { login } = useAuth();
-  const router = useRouter();
+  const [mutationSubmitted, setMutationSubmitted] = useState(false);
+  const [updateEmailMutation] = useUpdateEmailMutation();
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (
@@ -46,22 +45,33 @@ export default function UpdateEmailForm({
     },
     validationSchema: UpdateEmailSchema,
     onSubmit: async (values) => {
-      await authMutation({
+      setError("");
+      setMutationSubmitted(true);
+      await updateEmailMutation({
         variables: {
           email: values.email,
-          password: values.password,
+          currentPassword: values.password,
         },
         onCompleted: (data) => {
-          if (data.login?.success === true) {
-            login(data?.login?.token || "");
-            router.push("/");
+          if (data.updateUser?.user?.email) {
+            setUserDetails((prev) => {
+              const current = { ...prev };
+              current.email = data?.updateUser?.user?.email!;
+
+              return current;
+            });
+            setMutationSubmitted(false);
+            setEmailModalIsOpen(false);
           } else {
-            setError("Login Unsuccessful");
+            setError("Update Email Unsuccessful");
+            setMutationSubmitted(false);
           }
         },
         onError: (error) => {
+          setMutationSubmitted(false);
           setError(error.message);
         },
+        fetchPolicy: "network-only",
       });
     },
   });
@@ -121,7 +131,7 @@ export default function UpdateEmailForm({
             {formik.touched.password && formik.errors.password && (
               <FormHelperText
                 error
-                id="login-error"
+                id="update-email-error"
                 sx={{ mx: 0, width: { xs: "12rem", sm: "15rem" } }}
               >
                 {formik.errors.password}
@@ -131,7 +141,11 @@ export default function UpdateEmailForm({
         </Grid>
         <Grid item xs={8}>
           <Button type="submit" variant="contained" size="large">
-            Update Email
+            {mutationSubmitted ? (
+              <CircularProgress color="warning" size={20} />
+            ) : (
+              "Update Email"
+            )}
           </Button>
         </Grid>
       </Grid>

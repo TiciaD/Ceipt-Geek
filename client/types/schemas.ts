@@ -10,7 +10,7 @@ export const CreateAccountSchema = Yup.object({
     // src: https://stackoverflow.com/a/55604455/12369650
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Must Contain 8 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
+      "Must Contain at least 8 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
     ),
 });
 
@@ -20,7 +20,7 @@ export const LoginSchema = Yup.object({
     .required("Valid email is required"),
   password: Yup.string()
     .required("Password is required")
-    .min(8, "Password must be at least 8 characters"),
+    // .min(8, "Password must be at least 8 characters"),
 });
 
 export const UpdateEmailSchema = Yup.object({
@@ -29,4 +29,20 @@ export const UpdateEmailSchema = Yup.object({
     .required("Valid email is required"),
   password: Yup.string()
     .required("Password is required")
+});
+
+export const UpdatePasswordSchema = Yup.object({
+  newPassword: Yup.string()
+    .required("New password is required")
+    // add any additional password requirements here
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      "Must Contain at least 8 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
+    ),
+  confirmPassword: Yup.string()
+    .required("Confirm password is required")
+    .test("passwords-match", "Passwords must match", function (value) {
+      return this.parent.newPassword === value;
+    }),
+  currentPassword: Yup.string().required("Current password is required"),
 });

@@ -1,4 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+
+import UpdateEmailForm from "../../forms/UpdateEmailForm";
+import UpdatePasswordForm from "../../forms/UpdatePasswordForm";
+import {
+  useUpdateUsernameMutation,
+  useUserQuery,
+} from "../../graphql/generated/graphql";
+
 import {
   Button,
   Grid,
@@ -18,14 +27,7 @@ import {
   DialogActions,
   CircularProgress,
 } from "@mui/material";
-
 import EditIcon from "@mui/icons-material/Edit";
-import UpdateEmailForm from "../../forms/UpdateEmailForm";
-import {
-  useUpdateUsernameMutation,
-  useUserQuery,
-} from "../../graphql/generated/graphql";
-import { useRouter } from "next/router";
 
 export interface IPartialUser {
   id: string;
@@ -502,8 +504,8 @@ const ProfilePage = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 500,
-            height: 500,
+            minWidth: 500,
+            minHeight: 500,
             boxShadow: 24,
             bgcolor: "background.paper",
             padding: "2rem",
@@ -513,7 +515,10 @@ const ProfilePage = () => {
             justifyContent: "center",
           }}
         >
-          <UpdateEmailForm setUserDetails={setUserDetails} />
+          <UpdateEmailForm
+            setUserDetails={setUserDetails}
+            setEmailModalIsOpen={setEmailModalIsOpen}
+          />
         </Box>
       </Modal>
 
@@ -528,8 +533,8 @@ const ProfilePage = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 500,
-            height: 500,
+            minWidth: 500,
+            minHeight: 500,
             boxShadow: 24,
             bgcolor: "background.paper",
             padding: "2rem",
@@ -539,7 +544,7 @@ const ProfilePage = () => {
             justifyContent: "center",
           }}
         >
-          Password Form
+          <UpdatePasswordForm />
         </Box>
       </Modal>
 
