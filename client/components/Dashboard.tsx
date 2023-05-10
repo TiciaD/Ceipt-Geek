@@ -13,7 +13,7 @@ export interface GroupedReceipt {
 }
 
 export default function Dashboard() {
-  const allReceipts = useAllReceiptsByUserQuery();
+  const allReceipts = useAllReceiptsByUserQuery({fetchPolicy: "cache-and-network"});
 
   // Get current date
   const currentDate = new Date();

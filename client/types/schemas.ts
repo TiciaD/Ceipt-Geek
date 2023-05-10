@@ -19,8 +19,7 @@ export const LoginSchema = Yup.object({
     .email("Valid email is required")
     .required("Valid email is required"),
   password: Yup.string()
-    .required("Password is required")
-    // .min(8, "Password must be at least 8 characters"),
+    .required("Password is required"),
 });
 
 export const UpdateEmailSchema = Yup.object({
@@ -34,7 +33,6 @@ export const UpdateEmailSchema = Yup.object({
 export const UpdatePasswordSchema = Yup.object({
   newPassword: Yup.string()
     .required("New password is required")
-    // add any additional password requirements here
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
       "Must Contain at least 8 Characters, One Uppercase, One Lowercase, One Number and One Special Case Character"
