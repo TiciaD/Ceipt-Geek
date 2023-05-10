@@ -30,6 +30,7 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../../utils/useAuth";
+import { profileStyles } from "./profile.styles";
 
 export interface IPartialUser {
   id: string;
@@ -71,6 +72,8 @@ const ProfilePage = () => {
   const [deleteAccountMutation] = useDeleteAccountMutation();
 
   const theme = useTheme();
+  const styles = profileStyles(theme);
+
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [emailModalIsOpen, setEmailModalIsOpen] = useState(false);
   const [passwordModalIsOpen, setPasswordModalIsOpen] = useState(false);
@@ -79,13 +82,14 @@ const ProfilePage = () => {
   const [usernameInput, setUsernameInput] = useState<string | null>(null);
   const [usernameMutationLoading, setUsernameMutationLoading] = useState(false);
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("md"));
-
+  
   const handleEmailModalOpen = () => setEmailModalIsOpen(true);
   const handleEmailModalClose = () => setEmailModalIsOpen(false);
   const handlePasswordModalOpen = () => setPasswordModalIsOpen(true);
   const handlePasswordModalClose = () => setPasswordModalIsOpen(false);
   const handleDeletingAccountOpen = () => setIsDeletingAccount(true);
   const handleDeletingAccountClose = () => setIsDeletingAccount(false);
+  
 
   useEffect(() => {
     const token = localStorage.getItem("ceipt-geek-auth-token") || "";
@@ -200,31 +204,14 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          boxShadow: 24,
-          borderRadius: "10px",
-          padding: "20px",
-          marginTop: "20px",
-        }}
-      >
+      <Box sx={styles.profileContainer}>
         <Box marginBottom={2}>
           {isEditingUsername ? (
             <Box
               display="flex"
               alignItems="center"
               flexDirection="column"
-              sx={{
-                [theme.breakpoints.up("md")]: {
-                  height: "145px",
-                },
-                [theme.breakpoints.down("md")]: {
-                  height: "115px",
-                },
-                "@media (max-width: 300px)": {
-                  height: "auto",
-                },
-              }}
+              sx={styles.usernameTextfieldContainer}
             >
               {isLargeScreen ? (
                 <TextField
@@ -258,40 +245,15 @@ const ProfilePage = () => {
                 />
               )}
               {usernameError && (
-                <Typography
-                  sx={{
-                    marginTop: "2px",
-                    marginBottom: "0px",
-                    fontWeight: "bold",
-                    color: "red",
-                    fontSize: "14px",
-                    [theme.breakpoints.down("md")]: {
-                      fontSize: "11px",
-                    },
-                  }}
-                >
+                <Typography sx={styles.usernameError}>
                   {usernameError}
                 </Typography>
               )}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginTop: "9px",
-                  gap: "7px",
-                  "@media (max-width: 300px)": {
-                    flexDirection: "column",
-                  },
-                }}
-              >
+              <Box sx={styles.usernameButtonContainer}>
                 <Button
                   variant="contained"
                   color="primary"
-                  sx={{
-                    [theme.breakpoints.down("md")]: {
-                      fontSize: "12px",
-                    },
-                  }}
+                  sx={styles.usernameSaveButton}
                   onClick={handleUpdateUsername}
                 >
                   {usernameMutationLoading ? (
@@ -301,12 +263,7 @@ const ProfilePage = () => {
                   )}
                 </Button>
                 <Button
-                  sx={{
-                    color: "grey",
-                    [theme.breakpoints.down("md")]: {
-                      fontSize: "12px",
-                    },
-                  }}
+                  sx={styles.usernameCancelButton}
                   onClick={() => {
                     setIsEditingUsername(false);
                     setUsernameError(null);
@@ -318,21 +275,11 @@ const ProfilePage = () => {
               </Box>
             </Box>
           ) : (
-            <Typography
-              sx={{
-                position: "relative",
-                fontWeight: "bold",
-                [theme.breakpoints.up("md")]: { fontSize: "50px" },
-                [theme.breakpoints.down("md")]: {
-                  fontSize: "35px",
-                },
-              }}
-              align="center"
-            >
+            <Typography sx={styles.username} align="center">
               {userDetails?.username}
               <IconButton
                 color="primary"
-                sx={{ position: "absolute", top: "-5px" }}
+                sx={styles.usernameEditButton}
                 aria-label="edit username"
                 onClick={() => setIsEditingUsername(true)}
               >
@@ -342,55 +289,16 @@ const ProfilePage = () => {
           )}
         </Box>
 
-        <Divider
-          sx={{
-            marginBlock: "40px",
-            [theme.breakpoints.down("md")]: {
-              marginBlock: "30px",
-            },
-          }}
-        >
+        <Divider sx={styles.divider}>
           <Chip label="My Profile" variant="outlined" />
         </Divider>
 
         <Grid container spacing={2} sx={{ padding: "20px" }}>
-          <Grid
-            item
-            xs={12}
-            md={6}
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "7.5px",
-            }}
-          >
-            <Typography
-              sx={{
-                fontWeight: "bold",
-                [theme.breakpoints.up("md")]: {
-                  width: "300px",
-                  marginLeft: "75px",
-                },
-                [theme.breakpoints.down("md")]: {
-                  fontSize: "12px",
-                },
-              }}
-            >
+          <Grid item xs={12} md={6} sx={styles.gridItem}>
+            <Typography sx={styles.profileDetailsTypographyLeft}>
               Email: {userDetails?.email}
             </Typography>
-            <Typography
-              sx={{
-                fontWeight: "bold",
-                [theme.breakpoints.up("md")]: {
-                  width: "300px",
-                  marginLeft: "75px",
-                },
-                [theme.breakpoints.down("md")]: {
-                  fontSize: "12px",
-                },
-              }}
-            >
+            <Typography sx={styles.profileDetailsTypographyLeft}>
               Account created:{" "}
               {new Date(userDetails?.dateJoined).toLocaleDateString("en-US", {
                 month: "long",
@@ -400,96 +308,31 @@ const ProfilePage = () => {
             </Typography>
           </Grid>
 
-          <Grid
-            item
-            xs={12}
-            md={6}
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "7.5px",
-            }}
-          >
-            <Typography
-              sx={{
-                fontWeight: "bold",
-                [theme.breakpoints.up("md")]: {
-                  width: "300px",
-                  marginLeft: "150px",
-                },
-                [theme.breakpoints.down("md")]: {
-                  fontSize: "12px",
-                },
-              }}
-            >
+          <Grid item xs={12} md={6} sx={styles.gridItem}>
+            <Typography sx={styles.profileDetailsTypographyRight}>
               Receipts created: {userDetails?.receiptCount}
             </Typography>
-            <Typography
-              sx={{
-                fontWeight: "bold",
-                [theme.breakpoints.up("md")]: {
-                  width: "300px",
-                  marginLeft: "150px",
-                },
-                [theme.breakpoints.down("md")]: {
-                  fontSize: "12px",
-                },
-              }}
-            >
+            <Typography sx={styles.profileDetailsTypographyRight}>
               Tags created: {userDetails?.tagsCount}
             </Typography>
           </Grid>
         </Grid>
 
-        <Divider
-          sx={{
-            marginBlock: "40px",
-            [theme.breakpoints.down("md")]: {
-              marginBlock: "30px",
-            },
-          }}
-        >
+        <Divider sx={styles.divider}>
           <Chip label="Edit Profile" variant="outlined" />
         </Divider>
 
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "10px",
-            padding: "20px",
-          }}
-        >
+        <Box sx={styles.editProfileContainer}>
           <Button
             variant="contained"
-            sx={{
-              width: "250px",
-              [theme.breakpoints.down("md")]: {
-                width: "200px",
-                fontSize: "12px",
-              },
-              "@media (max-width: 300px)": {
-                width: "auto",
-              },
-            }}
+            sx={styles.editProfileContainerButton}
             onClick={handleEmailModalOpen}
           >
             Update Email Address
           </Button>
           <Button
             variant="contained"
-            sx={{
-              width: "250px",
-              [theme.breakpoints.down("md")]: {
-                width: "200px",
-                fontSize: "12px",
-              },
-              "@media (max-width: 300px)": {
-                width: "auto",
-              },
-            }}
+            sx={styles.editProfileContainerButton}
             onClick={handlePasswordModalOpen}
           >
             Update Password
@@ -498,16 +341,7 @@ const ProfilePage = () => {
           <Button
             variant="outlined"
             color="error"
-            sx={{
-              width: "250px",
-              [theme.breakpoints.down("md")]: {
-                width: "200px",
-                fontSize: "12px",
-              },
-              "@media (max-width: 300px)": {
-                width: "auto",
-              },
-            }}
+            sx={styles.editProfileContainerButton}
             onClick={handleDeletingAccountOpen}
           >
             Delete Account
@@ -521,21 +355,7 @@ const ProfilePage = () => {
         aria-labelledby="update email modal"
       >
         <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            minWidth: 500,
-            minHeight: 500,
-            boxShadow: 24,
-            bgcolor: "background.paper",
-            padding: "2rem",
-            borderRadius: "5px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          sx={styles.modalContainer}
         >
           <UpdateEmailForm
             setUserDetails={setUserDetails}
@@ -550,21 +370,7 @@ const ProfilePage = () => {
         aria-labelledby="update password modal"
       >
         <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            minWidth: 500,
-            minHeight: 500,
-            boxShadow: 24,
-            bgcolor: "background.paper",
-            padding: "2rem",
-            borderRadius: "5px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
+          sx={styles.modalContainer}
         >
           <UpdatePasswordForm />
         </Box>
