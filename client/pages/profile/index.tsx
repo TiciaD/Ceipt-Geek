@@ -98,6 +98,13 @@ const ProfilePage = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (error) {
+      logout();
+      router.replace("/");
+    }
+  }, [error]);
+
   const handleUsernameInputChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {

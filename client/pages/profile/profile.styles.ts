@@ -4,7 +4,8 @@ export const profileStyles = (theme: Theme) => ({
   profileContainer: {
     boxShadow: 24,
     borderRadius: "10px",
-    padding: "20px",
+    px: "2rem",
+    py: "3.5rem",
     marginTop: "20px",
   },
   usernameTextfieldContainer: {
