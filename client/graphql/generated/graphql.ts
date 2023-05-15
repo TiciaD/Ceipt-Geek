@@ -93,6 +93,8 @@ export type Mutation = {
   deleteUser?: Maybe<DeleteUser>;
   login?: Maybe<LoginMutation>;
   logout?: Maybe<LogoutMutation>;
+  requestPasswordReset?: Maybe<RequestPasswordReset>;
+  resetPassword?: Maybe<ResetPassword>;
   updateReceipt?: Maybe<UpdateReceipt>;
   updateTag?: Maybe<UpdateTag>;
   updateUser?: Maybe<UpdateUser>;
@@ -132,6 +134,18 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationRequestPasswordResetArgs = {
+  email: Scalars['String'];
+};
+
+
+export type MutationResetPasswordArgs = {
+  password: Scalars['String'];
+  token: Scalars['String'];
+  userId: Scalars['ID'];
+};
+
+
 export type MutationUpdateReceiptArgs = {
   receiptData: ReceiptInput;
   receiptId: Scalars['ID'];
@@ -160,6 +174,7 @@ export type Query = {
   allUsersTags?: Maybe<Array<Maybe<TagType>>>;
   filteredReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
   getUser?: Maybe<UserType>;
+  passwordRecovery?: Maybe<Scalars['ID']>;
   receipt?: Maybe<ReceiptType>;
   tag?: Maybe<TagType>;
   totalExpenditureByDate?: Maybe<Scalars['Float']>;
@@ -213,6 +228,11 @@ export type QueryFilteredReceiptsArgs = {
 export type QueryGetUserArgs = {
   email?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['Int']>;
+};
+
+
+export type QueryPasswordRecoveryArgs = {
+  token: Scalars['String'];
 };
 
 
@@ -304,6 +324,17 @@ export type ReceiptsReceiptExpenseChoices =
   | 'TRAVEL'
   /** Utilities */
   | 'UTILITIES';
+
+export type RequestPasswordReset = {
+  __typename?: 'RequestPasswordReset';
+  message?: Maybe<Scalars['String']>;
+  success?: Maybe<Scalars['Boolean']>;
+};
+
+export type ResetPassword = {
+  __typename?: 'ResetPassword';
+  success?: Maybe<Scalars['Boolean']>;
+};
 
 export type TagType = {
   __typename?: 'TagType';
@@ -410,6 +441,29 @@ export type DeleteAccountMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type DeleteAccountMutation = { __typename?: 'Mutation', deleteUser?: { __typename?: 'DeleteUser', success?: boolean | null } | null };
+
+export type RequestPasswordResetMutationVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+
+export type RequestPasswordResetMutation = { __typename?: 'Mutation', requestPasswordReset?: { __typename?: 'RequestPasswordReset', success?: boolean | null } | null };
+
+export type PasswordRecoveryQueryVariables = Exact<{
+  token: Scalars['String'];
+}>;
+
+
+export type PasswordRecoveryQuery = { __typename?: 'Query', userId?: string | null };
+
+export type ResetPasswordMutationVariables = Exact<{
+  token: Scalars['String'];
+  password: Scalars['String'];
+  userId: Scalars['ID'];
+}>;
+
+
+export type ResetPasswordMutation = { __typename?: 'Mutation', resetPassword?: { __typename?: 'ResetPassword', success?: boolean | null } | null };
 
 
 export const CreateAccountDocument = gql`
@@ -745,6 +799,107 @@ export function useDeleteAccountMutation(baseOptions?: Apollo.MutationHookOption
 export type DeleteAccountMutationHookResult = ReturnType<typeof useDeleteAccountMutation>;
 export type DeleteAccountMutationResult = Apollo.MutationResult<DeleteAccountMutation>;
 export type DeleteAccountMutationOptions = Apollo.BaseMutationOptions<DeleteAccountMutation, DeleteAccountMutationVariables>;
+export const RequestPasswordResetDocument = gql`
+    mutation RequestPasswordReset($email: String!) {
+  requestPasswordReset(email: $email) {
+    success
+  }
+}
+    `;
+export type RequestPasswordResetMutationFn = Apollo.MutationFunction<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>;
+
+/**
+ * __useRequestPasswordResetMutation__
+ *
+ * To run a mutation, you first call `useRequestPasswordResetMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestPasswordResetMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestPasswordResetMutation, { data, loading, error }] = useRequestPasswordResetMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useRequestPasswordResetMutation(baseOptions?: Apollo.MutationHookOptions<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>(RequestPasswordResetDocument, options);
+      }
+export type RequestPasswordResetMutationHookResult = ReturnType<typeof useRequestPasswordResetMutation>;
+export type RequestPasswordResetMutationResult = Apollo.MutationResult<RequestPasswordResetMutation>;
+export type RequestPasswordResetMutationOptions = Apollo.BaseMutationOptions<RequestPasswordResetMutation, RequestPasswordResetMutationVariables>;
+export const PasswordRecoveryDocument = gql`
+    query PasswordRecovery($token: String!) {
+  userId: passwordRecovery(token: $token)
+}
+    `;
+
+/**
+ * __usePasswordRecoveryQuery__
+ *
+ * To run a query within a React component, call `usePasswordRecoveryQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePasswordRecoveryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePasswordRecoveryQuery({
+ *   variables: {
+ *      token: // value for 'token'
+ *   },
+ * });
+ */
+export function usePasswordRecoveryQuery(baseOptions: Apollo.QueryHookOptions<PasswordRecoveryQuery, PasswordRecoveryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PasswordRecoveryQuery, PasswordRecoveryQueryVariables>(PasswordRecoveryDocument, options);
+      }
+export function usePasswordRecoveryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PasswordRecoveryQuery, PasswordRecoveryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PasswordRecoveryQuery, PasswordRecoveryQueryVariables>(PasswordRecoveryDocument, options);
+        }
+export type PasswordRecoveryQueryHookResult = ReturnType<typeof usePasswordRecoveryQuery>;
+export type PasswordRecoveryLazyQueryHookResult = ReturnType<typeof usePasswordRecoveryLazyQuery>;
+export type PasswordRecoveryQueryResult = Apollo.QueryResult<PasswordRecoveryQuery, PasswordRecoveryQueryVariables>;
+export const ResetPasswordDocument = gql`
+    mutation ResetPassword($token: String!, $password: String!, $userId: ID!) {
+  resetPassword(token: $token, password: $password, userId: $userId) {
+    success
+  }
+}
+    `;
+export type ResetPasswordMutationFn = Apollo.MutationFunction<ResetPasswordMutation, ResetPasswordMutationVariables>;
+
+/**
+ * __useResetPasswordMutation__
+ *
+ * To run a mutation, you first call `useResetPasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResetPasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resetPasswordMutation, { data, loading, error }] = useResetPasswordMutation({
+ *   variables: {
+ *      token: // value for 'token'
+ *      password: // value for 'password'
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useResetPasswordMutation(baseOptions?: Apollo.MutationHookOptions<ResetPasswordMutation, ResetPasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResetPasswordMutation, ResetPasswordMutationVariables>(ResetPasswordDocument, options);
+      }
+export type ResetPasswordMutationHookResult = ReturnType<typeof useResetPasswordMutation>;
+export type ResetPasswordMutationResult = Apollo.MutationResult<ResetPasswordMutation>;
+export type ResetPasswordMutationOptions = Apollo.BaseMutationOptions<ResetPasswordMutation, ResetPasswordMutationVariables>;
 export type CreateReceiptKeySpecifier = ('receipt' | CreateReceiptKeySpecifier)[];
 export type CreateReceiptFieldPolicy = {
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>
@@ -795,7 +950,7 @@ export type LogoutMutationKeySpecifier = ('success' | LogoutMutationKeySpecifier
 export type LogoutMutationFieldPolicy = {
 	success?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type MutationKeySpecifier = ('createReceipt' | 'createTag' | 'createUser' | 'deleteReceipt' | 'deleteTag' | 'deleteUser' | 'login' | 'logout' | 'updateReceipt' | 'updateTag' | 'updateUser' | MutationKeySpecifier)[];
+export type MutationKeySpecifier = ('createReceipt' | 'createTag' | 'createUser' | 'deleteReceipt' | 'deleteTag' | 'deleteUser' | 'login' | 'logout' | 'requestPasswordReset' | 'resetPassword' | 'updateReceipt' | 'updateTag' | 'updateUser' | MutationKeySpecifier)[];
 export type MutationFieldPolicy = {
 	createReceipt?: FieldPolicy<any> | FieldReadFunction<any>,
 	createTag?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -805,11 +960,13 @@ export type MutationFieldPolicy = {
 	deleteUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	login?: FieldPolicy<any> | FieldReadFunction<any>,
 	logout?: FieldPolicy<any> | FieldReadFunction<any>,
+	requestPasswordReset?: FieldPolicy<any> | FieldReadFunction<any>,
+	resetPassword?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateReceipt?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateTag?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateUser?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'allUsersTags' | 'filteredReceipts' | 'getUser' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
+export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'allUsersTags' | 'filteredReceipts' | 'getUser' | 'passwordRecovery' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
 	allReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
 	allReceiptsByUser?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -818,6 +975,7 @@ export type QueryFieldPolicy = {
 	allUsersTags?: FieldPolicy<any> | FieldReadFunction<any>,
 	filteredReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
 	getUser?: FieldPolicy<any> | FieldReadFunction<any>,
+	passwordRecovery?: FieldPolicy<any> | FieldReadFunction<any>,
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>,
 	tag?: FieldPolicy<any> | FieldReadFunction<any>,
 	totalExpenditureByDate?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -835,6 +993,15 @@ export type ReceiptTypeFieldPolicy = {
 	tags?: FieldPolicy<any> | FieldReadFunction<any>,
 	tax?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type RequestPasswordResetKeySpecifier = ('message' | 'success' | RequestPasswordResetKeySpecifier)[];
+export type RequestPasswordResetFieldPolicy = {
+	message?: FieldPolicy<any> | FieldReadFunction<any>,
+	success?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ResetPasswordKeySpecifier = ('success' | ResetPasswordKeySpecifier)[];
+export type ResetPasswordFieldPolicy = {
+	success?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type TagTypeKeySpecifier = ('id' | 'receiptSet' | 'tagName' | 'user' | TagTypeKeySpecifier)[];
 export type TagTypeFieldPolicy = {
@@ -918,6 +1085,14 @@ export type StrictTypedTypePolicies = {
 	ReceiptType?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | ReceiptTypeKeySpecifier | (() => undefined | ReceiptTypeKeySpecifier),
 		fields?: ReceiptTypeFieldPolicy,
+	},
+	RequestPasswordReset?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | RequestPasswordResetKeySpecifier | (() => undefined | RequestPasswordResetKeySpecifier),
+		fields?: RequestPasswordResetFieldPolicy,
+	},
+	ResetPassword?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ResetPasswordKeySpecifier | (() => undefined | ResetPasswordKeySpecifier),
+		fields?: ResetPasswordFieldPolicy,
 	},
 	TagType?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | TagTypeKeySpecifier | (() => undefined | TagTypeKeySpecifier),

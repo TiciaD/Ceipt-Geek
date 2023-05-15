@@ -91,7 +91,12 @@ export default function LoginForm() {
         </Grid>
         <Grid item xs={8}>
           <FormControl variant="outlined">
-            <InputLabel htmlFor="password">Password</InputLabel>
+            <InputLabel
+              htmlFor="password"
+              error={formik.touched.password && Boolean(formik.errors.password)}
+            >
+              Password
+            </InputLabel>
             <OutlinedInput
               id="password"
               name="password"
@@ -124,9 +129,9 @@ export default function LoginForm() {
               </FormHelperText>
             )}
           </FormControl>
-        <Grid item xs={8}>
-          <Link href="/passwordrecovery">Forgot password?</Link>
-        </Grid>
+          <Grid item xs={8}>
+            <Link href="/passwordrecovery">Forgot password?</Link>
+          </Grid>
         </Grid>
         <Grid item xs={8}>
           <Button type="submit" variant="contained" size="large">

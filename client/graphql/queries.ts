@@ -34,3 +34,9 @@ export const USER_QUERY = gql`
     }
   }
 `;
+
+export const PASSWORD_RECOVERY_QUERY = gql`
+  query PasswordRecovery($token: String!) {
+    userId: passwordRecovery(token: $token)
+  }
+`

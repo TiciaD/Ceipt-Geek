@@ -105,7 +105,12 @@ export default function UpdateEmailForm({
         </Grid>
         <Grid item xs={8}>
           <FormControl variant="outlined">
-            <InputLabel htmlFor="password">Password</InputLabel>
+            <InputLabel
+              htmlFor="password"
+              error={formik.touched.password && Boolean(formik.errors.password)}
+            >
+              Password
+            </InputLabel>
             <OutlinedInput
               id="password"
               name="password"

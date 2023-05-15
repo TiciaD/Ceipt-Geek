@@ -8,13 +8,13 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import { PasswordRecoverySchema } from "../types/schemas";
-import { useUpdateEmailMutation } from "../graphql/generated/graphql";
-
+import { useRequestPasswordResetMutation } from "../graphql/generated/graphql";
 
 export default function PasswordRecoveryForm() {
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [mutationSubmitted, setMutationSubmitted] = useState(false);
-  // const [updateEmailMutation] = useUpdateEmailMutation();
+  const [requestPasswordResetMutation] = useRequestPasswordResetMutation();
 
   const formik = useFormik({
     initialValues: {
@@ -23,33 +23,28 @@ export default function PasswordRecoveryForm() {
     validationSchema: PasswordRecoverySchema,
     onSubmit: async (values) => {
       setError("");
+      setSuccessMessage("");
       setMutationSubmitted(true);
-      // await updateEmailMutation({
-      //   variables: {
-      //     email: values.email,
-      //     currentPassword: values.password,
-      //   },
-      //   onCompleted: (data) => {
-      //     if (data.updateUser?.user?.email) {
-      //       setUserDetails((prev) => {
-      //         const current = { ...prev };
-      //         current.email = data?.updateUser?.user?.email!;
-
-      //         return current;
-      //       });
-      //       setMutationSubmitted(false);
-      //       setEmailModalIsOpen(false);
-      //     } else {
-      //       setError("Update Email Unsuccessful");
-      //       setMutationSubmitted(false);
-      //     }
-      //   },
-      //   onError: (error) => {
-      //     setMutationSubmitted(false);
-      //     setError(error.message);
-      //   },
-      //   fetchPolicy: "network-only",
-      // });
+      await requestPasswordResetMutation({
+        variables: {
+          email: values.email,
+        },
+        onCompleted: (data) => {
+          if (data.requestPasswordReset?.success) {
+            setSuccessMessage(
+              "Password reset link has been sent to your email address"
+            );
+          } else {
+            setError("Password reset request unsuccessful");
+          }
+          setMutationSubmitted(false);
+        },
+        onError: (error) => {
+          setMutationSubmitted(false);
+          setError(error.message);
+        },
+        fetchPolicy: "network-only",
+      });
     },
   });
 
@@ -60,12 +55,17 @@ export default function PasswordRecoveryForm() {
         alignItems="center"
         justifyContent="center"
         direction="column"
-        spacing={3}
+        spacing={2.5}
         sx={{ py: "1rem" }}
       >
         {error && (
           <Grid item>
             <Alert severity="error">{error}</Alert>
+          </Grid>
+        )}
+        {successMessage && (
+          <Grid item>
+            <Alert severity="success">{successMessage}</Alert>
           </Grid>
         )}
         <Grid item>
@@ -81,7 +81,12 @@ export default function PasswordRecoveryForm() {
           />
         </Grid>
         <Grid item xs={8}>
-          <Button type="submit" variant="contained" size="large">
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={mutationSubmitted}
+          >
             {mutationSubmitted ? (
               <CircularProgress color="warning" size={20} />
             ) : (

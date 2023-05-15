@@ -841,7 +841,7 @@ class RequestPasswordReset(graphene.Mutation):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise GraphQLError(f"Account with email: {email} does not exist")
+            raise GraphQLError(f"Account with email: {email} not found")
 
         token = pyjwt.encode(
             {
