@@ -50,6 +50,28 @@ export type DeleteUser = {
   success?: Maybe<Scalars['Boolean']>;
 };
 
+export type ExtendedUserType = {
+  __typename?: 'ExtendedUserType';
+  dateJoined: Scalars['DateTime'];
+  email: Scalars['String'];
+  firstName: Scalars['String'];
+  id: Scalars['ID'];
+  /** Designates whether this user should be treated as active. Unselect this instead of deleting accounts. */
+  isActive: Scalars['Boolean'];
+  /** Designates whether the user can log into this admin site. */
+  isStaff: Scalars['Boolean'];
+  /** Designates that this user has all permissions without explicitly assigning them. */
+  isSuperuser: Scalars['Boolean'];
+  lastLogin?: Maybe<Scalars['DateTime']>;
+  lastName: Scalars['String'];
+  receiptCount?: Maybe<Scalars['Int']>;
+  receiptSet: Array<ReceiptType>;
+  tagSet: Array<TagType>;
+  tagsCount?: Maybe<Scalars['Int']>;
+  /** Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
+  username: Scalars['String'];
+};
+
 export type LoginMutation = {
   __typename?: 'LoginMutation';
   success?: Maybe<Scalars['Boolean']>;
@@ -100,7 +122,7 @@ export type MutationDeleteReceiptArgs = {
 
 
 export type MutationDeleteTagArgs = {
-  id: Scalars['ID'];
+  tagId: Scalars['ID'];
 };
 
 
@@ -117,14 +139,15 @@ export type MutationUpdateReceiptArgs = {
 
 
 export type MutationUpdateTagArgs = {
-  id: Scalars['ID'];
+  tagId: Scalars['ID'];
   tagName: Scalars['ID'];
 };
 
 
 export type MutationUpdateUserArgs = {
+  currentPassword?: InputMaybe<Scalars['String']>;
   email?: InputMaybe<Scalars['String']>;
-  password?: InputMaybe<Scalars['String']>;
+  updatedPassword?: InputMaybe<Scalars['String']>;
   username?: InputMaybe<Scalars['String']>;
 };
 
@@ -134,17 +157,40 @@ export type Query = {
   allReceiptsByUser?: Maybe<Array<Maybe<ReceiptType>>>;
   allTags?: Maybe<Array<Maybe<TagType>>>;
   allUsers?: Maybe<Array<Maybe<UserType>>>;
+  allUsersTags?: Maybe<Array<Maybe<TagType>>>;
   filteredReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
   getUser?: Maybe<UserType>;
   receipt?: Maybe<ReceiptType>;
   tag?: Maybe<TagType>;
   totalExpenditureByDate?: Maybe<Scalars['Float']>;
-  user?: Maybe<UserType>;
+  user?: Maybe<ExtendedUserType>;
 };
 
 
 export type QueryAllReceiptsArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   userId?: InputMaybe<Scalars['ID']>;
+};
+
+
+export type QueryAllReceiptsByUserArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+};
+
+
+export type QueryAllTagsArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+  userId?: InputMaybe<Scalars['ID']>;
+};
+
+
+export type QueryAllUsersArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+};
+
+
+export type QueryAllUsersTagsArgs = {
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
 };
 
 
@@ -155,6 +201,7 @@ export type QueryFilteredReceiptsArgs = {
   dateLte?: InputMaybe<Scalars['Date']>;
   expense?: InputMaybe<Scalars['String']>;
   notes?: InputMaybe<Scalars['String']>;
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   storeName?: InputMaybe<Scalars['String']>;
   tagsContainsAll?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   tagsContainsAny?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
@@ -175,7 +222,7 @@ export type QueryReceiptArgs = {
 
 
 export type QueryTagArgs = {
-  id: Scalars['ID'];
+  tagId: Scalars['ID'];
 };
 
 
@@ -206,9 +253,10 @@ export type ReceiptType = {
   storeName: Scalars['String'];
   tags: Array<TagType>;
   tax?: Maybe<Scalars['DecimalType']>;
-  user: UserType;
+  user: ExtendedUserType;
 };
 
+/** An enumeration. */
 export type ReceiptsReceiptExpenseChoices =
   /** Child Care */
   | 'CHILD_CARE'
@@ -262,6 +310,7 @@ export type TagType = {
   id: Scalars['ID'];
   receiptSet: Array<ReceiptType>;
   tagName: Scalars['String'];
+  user: ExtendedUserType;
 };
 
 export type UpdateReceipt = {
@@ -294,6 +343,7 @@ export type UserType = {
   lastLogin?: Maybe<Scalars['DateTime']>;
   lastName: Scalars['String'];
   receiptSet: Array<ReceiptType>;
+  tagSet: Array<TagType>;
   /** Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
   username: Scalars['String'];
 };
@@ -327,6 +377,39 @@ export type TotalExpenditureByDateQueryVariables = Exact<{
 
 
 export type TotalExpenditureByDateQuery = { __typename?: 'Query', totalExpenditureByDate?: number | null };
+
+export type UserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'ExtendedUserType', id: string, username: string, email: string, dateJoined: any, receiptCount?: number | null, tagsCount?: number | null } | null };
+
+export type UpdateUsernameMutationVariables = Exact<{
+  username: Scalars['String'];
+}>;
+
+
+export type UpdateUsernameMutation = { __typename?: 'Mutation', updateUser?: { __typename?: 'UpdateUser', user?: { __typename?: 'UserType', username: string } | null } | null };
+
+export type UpdateEmailMutationVariables = Exact<{
+  email: Scalars['String'];
+  currentPassword: Scalars['String'];
+}>;
+
+
+export type UpdateEmailMutation = { __typename?: 'Mutation', updateUser?: { __typename?: 'UpdateUser', user?: { __typename?: 'UserType', email: string } | null } | null };
+
+export type UpdatePasswordMutationVariables = Exact<{
+  updatedPassword: Scalars['String'];
+  currentPassword: Scalars['String'];
+}>;
+
+
+export type UpdatePasswordMutation = { __typename?: 'Mutation', updateUser?: { __typename?: 'UpdateUser', user?: { __typename?: 'UserType', id: string, username: string, email: string } | null } | null };
+
+export type DeleteAccountMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DeleteAccountMutation = { __typename?: 'Mutation', deleteUser?: { __typename?: 'DeleteUser', success?: boolean | null } | null };
 
 
 export const CreateAccountDocument = gql`
@@ -482,6 +565,186 @@ export function useTotalExpenditureByDateLazyQuery(baseOptions?: Apollo.LazyQuer
 export type TotalExpenditureByDateQueryHookResult = ReturnType<typeof useTotalExpenditureByDateQuery>;
 export type TotalExpenditureByDateLazyQueryHookResult = ReturnType<typeof useTotalExpenditureByDateLazyQuery>;
 export type TotalExpenditureByDateQueryResult = Apollo.QueryResult<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>;
+export const UserDocument = gql`
+    query User {
+  user {
+    id
+    username
+    email
+    dateJoined
+    receiptCount
+    tagsCount
+  }
+}
+    `;
+
+/**
+ * __useUserQuery__
+ *
+ * To run a query within a React component, call `useUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUserQuery(baseOptions?: Apollo.QueryHookOptions<UserQuery, UserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserQuery, UserQueryVariables>(UserDocument, options);
+      }
+export function useUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserQuery, UserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserQuery, UserQueryVariables>(UserDocument, options);
+        }
+export type UserQueryHookResult = ReturnType<typeof useUserQuery>;
+export type UserLazyQueryHookResult = ReturnType<typeof useUserLazyQuery>;
+export type UserQueryResult = Apollo.QueryResult<UserQuery, UserQueryVariables>;
+export const UpdateUsernameDocument = gql`
+    mutation UpdateUsername($username: String!) {
+  updateUser(username: $username) {
+    user {
+      username
+    }
+  }
+}
+    `;
+export type UpdateUsernameMutationFn = Apollo.MutationFunction<UpdateUsernameMutation, UpdateUsernameMutationVariables>;
+
+/**
+ * __useUpdateUsernameMutation__
+ *
+ * To run a mutation, you first call `useUpdateUsernameMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUsernameMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUsernameMutation, { data, loading, error }] = useUpdateUsernameMutation({
+ *   variables: {
+ *      username: // value for 'username'
+ *   },
+ * });
+ */
+export function useUpdateUsernameMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUsernameMutation, UpdateUsernameMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUsernameMutation, UpdateUsernameMutationVariables>(UpdateUsernameDocument, options);
+      }
+export type UpdateUsernameMutationHookResult = ReturnType<typeof useUpdateUsernameMutation>;
+export type UpdateUsernameMutationResult = Apollo.MutationResult<UpdateUsernameMutation>;
+export type UpdateUsernameMutationOptions = Apollo.BaseMutationOptions<UpdateUsernameMutation, UpdateUsernameMutationVariables>;
+export const UpdateEmailDocument = gql`
+    mutation UpdateEmail($email: String!, $currentPassword: String!) {
+  updateUser(email: $email, currentPassword: $currentPassword) {
+    user {
+      email
+    }
+  }
+}
+    `;
+export type UpdateEmailMutationFn = Apollo.MutationFunction<UpdateEmailMutation, UpdateEmailMutationVariables>;
+
+/**
+ * __useUpdateEmailMutation__
+ *
+ * To run a mutation, you first call `useUpdateEmailMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateEmailMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateEmailMutation, { data, loading, error }] = useUpdateEmailMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *      currentPassword: // value for 'currentPassword'
+ *   },
+ * });
+ */
+export function useUpdateEmailMutation(baseOptions?: Apollo.MutationHookOptions<UpdateEmailMutation, UpdateEmailMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateEmailMutation, UpdateEmailMutationVariables>(UpdateEmailDocument, options);
+      }
+export type UpdateEmailMutationHookResult = ReturnType<typeof useUpdateEmailMutation>;
+export type UpdateEmailMutationResult = Apollo.MutationResult<UpdateEmailMutation>;
+export type UpdateEmailMutationOptions = Apollo.BaseMutationOptions<UpdateEmailMutation, UpdateEmailMutationVariables>;
+export const UpdatePasswordDocument = gql`
+    mutation UpdatePassword($updatedPassword: String!, $currentPassword: String!) {
+  updateUser(updatedPassword: $updatedPassword, currentPassword: $currentPassword) {
+    user {
+      id
+      username
+      email
+    }
+  }
+}
+    `;
+export type UpdatePasswordMutationFn = Apollo.MutationFunction<UpdatePasswordMutation, UpdatePasswordMutationVariables>;
+
+/**
+ * __useUpdatePasswordMutation__
+ *
+ * To run a mutation, you first call `useUpdatePasswordMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdatePasswordMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updatePasswordMutation, { data, loading, error }] = useUpdatePasswordMutation({
+ *   variables: {
+ *      updatedPassword: // value for 'updatedPassword'
+ *      currentPassword: // value for 'currentPassword'
+ *   },
+ * });
+ */
+export function useUpdatePasswordMutation(baseOptions?: Apollo.MutationHookOptions<UpdatePasswordMutation, UpdatePasswordMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdatePasswordMutation, UpdatePasswordMutationVariables>(UpdatePasswordDocument, options);
+      }
+export type UpdatePasswordMutationHookResult = ReturnType<typeof useUpdatePasswordMutation>;
+export type UpdatePasswordMutationResult = Apollo.MutationResult<UpdatePasswordMutation>;
+export type UpdatePasswordMutationOptions = Apollo.BaseMutationOptions<UpdatePasswordMutation, UpdatePasswordMutationVariables>;
+export const DeleteAccountDocument = gql`
+    mutation DeleteAccount {
+  deleteUser {
+    success
+  }
+}
+    `;
+export type DeleteAccountMutationFn = Apollo.MutationFunction<DeleteAccountMutation, DeleteAccountMutationVariables>;
+
+/**
+ * __useDeleteAccountMutation__
+ *
+ * To run a mutation, you first call `useDeleteAccountMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAccountMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAccountMutation, { data, loading, error }] = useDeleteAccountMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDeleteAccountMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAccountMutation, DeleteAccountMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAccountMutation, DeleteAccountMutationVariables>(DeleteAccountDocument, options);
+      }
+export type DeleteAccountMutationHookResult = ReturnType<typeof useDeleteAccountMutation>;
+export type DeleteAccountMutationResult = Apollo.MutationResult<DeleteAccountMutation>;
+export type DeleteAccountMutationOptions = Apollo.BaseMutationOptions<DeleteAccountMutation, DeleteAccountMutationVariables>;
 export type CreateReceiptKeySpecifier = ('receipt' | CreateReceiptKeySpecifier)[];
 export type CreateReceiptFieldPolicy = {
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>
@@ -506,6 +769,23 @@ export type DeleteUserKeySpecifier = ('success' | DeleteUserKeySpecifier)[];
 export type DeleteUserFieldPolicy = {
 	success?: FieldPolicy<any> | FieldReadFunction<any>
 };
+export type ExtendedUserTypeKeySpecifier = ('dateJoined' | 'email' | 'firstName' | 'id' | 'isActive' | 'isStaff' | 'isSuperuser' | 'lastLogin' | 'lastName' | 'receiptCount' | 'receiptSet' | 'tagSet' | 'tagsCount' | 'username' | ExtendedUserTypeKeySpecifier)[];
+export type ExtendedUserTypeFieldPolicy = {
+	dateJoined?: FieldPolicy<any> | FieldReadFunction<any>,
+	email?: FieldPolicy<any> | FieldReadFunction<any>,
+	firstName?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	isActive?: FieldPolicy<any> | FieldReadFunction<any>,
+	isStaff?: FieldPolicy<any> | FieldReadFunction<any>,
+	isSuperuser?: FieldPolicy<any> | FieldReadFunction<any>,
+	lastLogin?: FieldPolicy<any> | FieldReadFunction<any>,
+	lastName?: FieldPolicy<any> | FieldReadFunction<any>,
+	receiptCount?: FieldPolicy<any> | FieldReadFunction<any>,
+	receiptSet?: FieldPolicy<any> | FieldReadFunction<any>,
+	tagSet?: FieldPolicy<any> | FieldReadFunction<any>,
+	tagsCount?: FieldPolicy<any> | FieldReadFunction<any>,
+	username?: FieldPolicy<any> | FieldReadFunction<any>
+};
 export type LoginMutationKeySpecifier = ('success' | 'token' | LoginMutationKeySpecifier)[];
 export type LoginMutationFieldPolicy = {
 	success?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -529,12 +809,13 @@ export type MutationFieldPolicy = {
 	updateTag?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateUser?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'filteredReceipts' | 'getUser' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
+export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'allUsersTags' | 'filteredReceipts' | 'getUser' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
 	allReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
 	allReceiptsByUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	allTags?: FieldPolicy<any> | FieldReadFunction<any>,
 	allUsers?: FieldPolicy<any> | FieldReadFunction<any>,
+	allUsersTags?: FieldPolicy<any> | FieldReadFunction<any>,
 	filteredReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
 	getUser?: FieldPolicy<any> | FieldReadFunction<any>,
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -555,11 +836,12 @@ export type ReceiptTypeFieldPolicy = {
 	tax?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type TagTypeKeySpecifier = ('id' | 'receiptSet' | 'tagName' | TagTypeKeySpecifier)[];
+export type TagTypeKeySpecifier = ('id' | 'receiptSet' | 'tagName' | 'user' | TagTypeKeySpecifier)[];
 export type TagTypeFieldPolicy = {
 	id?: FieldPolicy<any> | FieldReadFunction<any>,
 	receiptSet?: FieldPolicy<any> | FieldReadFunction<any>,
-	tagName?: FieldPolicy<any> | FieldReadFunction<any>
+	tagName?: FieldPolicy<any> | FieldReadFunction<any>,
+	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type UpdateReceiptKeySpecifier = ('receipt' | UpdateReceiptKeySpecifier)[];
 export type UpdateReceiptFieldPolicy = {
@@ -573,7 +855,7 @@ export type UpdateUserKeySpecifier = ('user' | UpdateUserKeySpecifier)[];
 export type UpdateUserFieldPolicy = {
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type UserTypeKeySpecifier = ('dateJoined' | 'email' | 'firstName' | 'id' | 'isActive' | 'isStaff' | 'isSuperuser' | 'lastLogin' | 'lastName' | 'receiptSet' | 'username' | UserTypeKeySpecifier)[];
+export type UserTypeKeySpecifier = ('dateJoined' | 'email' | 'firstName' | 'id' | 'isActive' | 'isStaff' | 'isSuperuser' | 'lastLogin' | 'lastName' | 'receiptSet' | 'tagSet' | 'username' | UserTypeKeySpecifier)[];
 export type UserTypeFieldPolicy = {
 	dateJoined?: FieldPolicy<any> | FieldReadFunction<any>,
 	email?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -585,6 +867,7 @@ export type UserTypeFieldPolicy = {
 	lastLogin?: FieldPolicy<any> | FieldReadFunction<any>,
 	lastName?: FieldPolicy<any> | FieldReadFunction<any>,
 	receiptSet?: FieldPolicy<any> | FieldReadFunction<any>,
+	tagSet?: FieldPolicy<any> | FieldReadFunction<any>,
 	username?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type StrictTypedTypePolicies = {
@@ -611,6 +894,10 @@ export type StrictTypedTypePolicies = {
 	DeleteUser?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | DeleteUserKeySpecifier | (() => undefined | DeleteUserKeySpecifier),
 		fields?: DeleteUserFieldPolicy,
+	},
+	ExtendedUserType?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ExtendedUserTypeKeySpecifier | (() => undefined | ExtendedUserTypeKeySpecifier),
+		fields?: ExtendedUserTypeFieldPolicy,
 	},
 	LoginMutation?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | LoginMutationKeySpecifier | (() => undefined | LoginMutationKeySpecifier),
