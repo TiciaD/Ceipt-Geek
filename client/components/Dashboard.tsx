@@ -6,13 +6,14 @@ import {
 } from "@mui/material";
 import { ReceiptNodeEdge, useAllReceiptsByUserQuery, useTotalExpenditureByDateQuery } from "../graphql/generated/graphql";
 import DashboardTable from "./DashboardTable";
+import type { DashboardProps } from '../pages/index';
 
 export interface GroupedReceipt {
   date: string;
   receipts: ReceiptNodeEdge[];
 }
 
-export default function Dashboard() {
+export default function Dashboard({ router }: DashboardProps) {
   const allReceipts = useAllReceiptsByUserQuery({
     variables: {
       first: 10, // replace with the desired value
@@ -119,7 +120,7 @@ export default function Dashboard() {
           <>
             <Box key={`${receiptGroup.date}_${i}`} sx={{ marginBottom: "2rem" }}>
               <Typography variant="h5">{receiptGroup.date}</Typography>
-              <DashboardTable receiptGroup={receiptGroup}/>
+              <DashboardTable receiptGroup={receiptGroup} router={router}/>
             </Box>
           </>
         )

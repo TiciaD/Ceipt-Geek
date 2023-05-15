@@ -30,3 +30,5 @@ export const TOTAL_EXPENDITURE_BY_DATE = gql`query TotalExpenditureByDate($dateG
   totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
 }
 `
+
+// add q

@@ -11,12 +11,16 @@ import {
   TableRow 
 } from "@mui/material";
 import { GroupedReceipt } from "./Dashboard";
+import type { NextRouter } from 'next/router';
+
+
 
 interface DashboardTableProps {
   receiptGroup: GroupedReceipt,
+  router: NextRouter;
 }
 
-export default function DashboardTable({ receiptGroup }: DashboardTableProps) {
+export default function DashboardTable({ receiptGroup, router }: DashboardTableProps) {
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -58,7 +62,7 @@ export default function DashboardTable({ receiptGroup }: DashboardTableProps) {
         </TableHead>
         <TableBody>
           {receiptGroup.receipts.map((receipt) => (
-            <StyledTableRow key={receipt.node?.id}>
+            <StyledTableRow sx={{cursor: "pointer"}} key={receipt.node?.id} onClick={() => router.push(`/receiptdetails/${receipt.node?.id}`)}>
               <StyledTableCell colSpan={3} align="left">
                 <Chip label={receipt.node?.expense} color="secondary" />
               </StyledTableCell>
