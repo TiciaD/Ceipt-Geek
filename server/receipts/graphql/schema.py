@@ -859,11 +859,12 @@ class RequestPasswordReset(graphene.Mutation):
             raise GraphQLError(e)
 
         frontend_url = os.getenv("FRONTEND_URL")
+        message = f"Hello {user.username},\n\nPlease follow this link to reset your password: {frontend_url}/resetpassword/{token}\n\nPlease note that this link is only valid for one hour.\nThis is an automated message, please do not reply to this email."
         send_count = send_mail(
-            "Ceipt Geek Account Password Reset",  # subject
-            f"Please follow this link to reset your password: {frontend_url}/resetpassword/{token}",  # message
-            "ceiptgeek@gmail.com",  # from email address
-            [email],  # recipient email address
+            "Ceipt Geek Account Password Reset",  
+            message,  
+            "ceiptgeek@gmail.com",  
+            [email], 
             fail_silently=False,
         )
 
