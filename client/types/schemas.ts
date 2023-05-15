@@ -22,6 +22,12 @@ export const LoginSchema = Yup.object({
     .required("Password is required"),
 });
 
+export const PasswordRecoverySchema = Yup.object({
+  email: Yup.string()
+    .email("Valid email is required")
+    .required("Valid email is required"),
+});
+
 export const UpdateEmailSchema = Yup.object({
   email: Yup.string()
     .email("Valid email is required")

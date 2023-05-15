@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Receipt, Tag
+from .models import Receipt, Tag, PasswordRecovery
 
 from django.utils.translation import gettext_lazy as _
 from django.contrib.admin import ListFilter
@@ -41,7 +41,11 @@ class TagAdmin(admin.ModelAdmin):
     list_display = ('tag_name',)
     list_filter = ('tag_name',)
 
+class PasswordRecoveryAdmin(admin.ModelAdmin):
+    list_display = ('token', 'expires_at', 'user')
+    list_filter = ('expires_at', 'user')
 
 admin.site.register(ExtendedUser)
 admin.site.register(Receipt, ReceiptAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(PasswordRecovery, PasswordRecoveryAdmin)

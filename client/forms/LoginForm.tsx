@@ -72,9 +72,11 @@ export default function LoginForm() {
         spacing={3}
         sx={{ py: "1rem" }}
       >
-        {error && <Grid item>
-          <Alert severity="error">{error}</Alert>
-        </Grid>}
+        {error && (
+          <Grid item>
+            <Alert severity="error">{error}</Alert>
+          </Grid>
+        )}
         <Grid item>
           <TextField
             sx={{ width: { xs: "12rem", sm: "15rem" } }}
@@ -116,12 +118,15 @@ export default function LoginForm() {
               <FormHelperText
                 error
                 id="login-error"
-                sx={{ mx: 0, width: { xs: "12rem", sm: "15rem" } }}
+                sx={{ mx: 0, pl: 2, width: { xs: "12rem", sm: "15rem" } }}
               >
                 {formik.errors.password}
               </FormHelperText>
             )}
           </FormControl>
+        <Grid item xs={8}>
+          <Link href="/passwordrecovery">Forgot password?</Link>
+        </Grid>
         </Grid>
         <Grid item xs={8}>
           <Button type="submit" variant="contained" size="large">

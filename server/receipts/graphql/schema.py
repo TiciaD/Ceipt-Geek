@@ -1,8 +1,9 @@
-from ..models import Receipt, Tag
+from ..models import Receipt, Tag, PasswordRecovery
 from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 from django.db.models import Q
 from django.db.models import F
+
 import graphene
 from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
@@ -11,6 +12,9 @@ from graphene_django.converter import convert_django_field
 
 import cloudinary.uploader
 from cloudinary.models import CloudinaryField
+
+import os
+from django.core.mail import send_mail
 
 import jwt as pyjwt
 from .decorators import is_superuser, login_required, is_owner_or_superuser
@@ -25,7 +29,6 @@ import re
 from datetime import datetime, timedelta
 from django.db.models import Sum
 from decimal import Decimal
-
 from .sort import sort_dataset
 
 
@@ -788,6 +791,145 @@ class DeleteTag(graphene.Mutation):
             raise GraphQLError(f"Tag with id: {id} does not exist")
 
 
+# PASSWORD RECOVERY SCHEMA
+
+# class PasswordRecoveryType(DjangoObjectType):
+#     user_id = graphene.ID()
+
+
+class PasswordRecoveryQuery(ObjectType):
+    password_recovery = graphene.Field(graphene.ID, token=graphene.String(required=True))
+
+    def resolve_password_recovery(self, info, **kwargs):
+        token = kwargs.get("token")
+
+        try: 
+            PasswordRecovery.objects.get(token=token)
+        except PasswordRecovery.DoesNotExist:
+            raise GraphQLError("Password reset request not found.")
+        
+        try:
+            payload = pyjwt.decode(
+                token,
+                settings.GRAPHQL_JWT["JWT_SECRET_KEY"],
+                algorithms=['HS256']
+            )
+            user_id = payload.get('user_id')
+            
+            get_user_model().objects.get(pk=user_id)
+
+        except pyjwt.ExpiredSignatureError:
+            raise GraphQLError('This link has expired. Please send another password reset request.')
+        except get_user_model().DoesNotExist:
+            raise GraphQLError(
+                'The account associated with this password reset request no longer exists.'
+            )
+        
+        return user_id    
+
+
+class RequestPasswordReset(graphene.Mutation):
+    class Arguments:
+        email = graphene.String(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+
+    def mutate(root, info, **kwargs):
+        email = kwargs.get("email")
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise GraphQLError(f"Account with email: {email} does not exist")
+
+        token = pyjwt.encode(
+            {
+                "user_id": str(user.id),
+                "exp": datetime.utcnow() + timedelta(hours=1),
+            },
+            settings.GRAPHQL_JWT["JWT_SECRET_KEY"],
+            algorithm="HS256",
+        )
+
+        password_recovery_instance = PasswordRecovery(token=token, user=user)
+        try:
+            password_recovery_instance.save()
+        except Exception as e:
+            raise GraphQLError(e)
+
+        frontend_url = os.getenv("FRONTEND_URL")
+        send_count = send_mail(
+            "Ceipt Geek Account Password Reset",  # subject
+            f"Please follow this link to reset your password: {frontend_url}/resetpassword/{token}",  # message
+            "ceiptgeek@gmail.com",  # from email address
+            [email],  # recipient email address
+            fail_silently=False,
+        )
+
+        if send_count == 1:
+            return RequestPasswordReset(
+                success=True, 
+                message="Password reset email successfully sent to your email address."
+            )
+        else:
+            return RequestPasswordReset(
+                success=False,
+                message="Something went wrong sending the password reset email. Please try again.",
+            )
+        
+class ResetPassword(graphene.Mutation):
+    class Arguments:
+        token = graphene.String(required=True)
+        password = graphene.String(required=True)
+        user_id = graphene.ID(required=True)
+
+    success = graphene.Boolean()
+
+    def mutate(root, info, **kwargs):
+        token = kwargs.get("token")
+        password = kwargs.get("password")
+        user_id = kwargs.get("user_id")
+
+        try: 
+            password_recovery_instance = PasswordRecovery.objects.get(token=token)
+        except PasswordRecovery.DoesNotExist:
+            raise GraphQLError("Password reset request not found. Please send another password reset request.")
+        
+        try:
+            payload = pyjwt.decode(
+                token,
+                settings.GRAPHQL_JWT["JWT_SECRET_KEY"],
+                algorithms=['HS256']
+            )
+            payload_user_id = payload.get('user_id')
+
+            if str(payload_user_id) != str(user_id):
+                raise GraphQLError("Token user id does not match the request user id. Please send another password reset request.")
+            
+            user = get_user_model().objects.get(pk=user_id)
+
+        except pyjwt.ExpiredSignatureError:
+            password_recovery_instance.delete()
+            raise GraphQLError('This password reset request has expired. Please send another password reset request.')
+        except get_user_model().DoesNotExist:
+            password_recovery_instance.delete()
+            raise GraphQLError(
+                'The account associated with this password reset request no longer exists.'
+            )
+        
+        try:
+            validate_password(password)
+            user.set_password(password)
+            user.save()
+
+            password_recovery_instance.delete()
+
+            return ResetPassword(success=True)
+        except Exception as e:
+            raise GraphQLError(e)
+
+
 class Mutation(graphene.ObjectType):
     login = LoginMutation.Field()
     logout = LogoutMutation.Field()
@@ -800,9 +942,11 @@ class Mutation(graphene.ObjectType):
     create_tag = CreateTag.Field()
     update_tag = UpdateTag.Field()
     delete_tag = DeleteTag.Field()
+    request_password_reset = RequestPasswordReset.Field()
+    reset_password = ResetPassword.Field()
 
 
-class Query(UserQuery, ReceiptQuery, TagQuery, graphene.ObjectType):
+class Query(UserQuery, ReceiptQuery, TagQuery, PasswordRecoveryQuery, graphene.ObjectType):
     pass
 
 
