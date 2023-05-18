@@ -1,8 +1,6 @@
 from ..models import Receipt, Tag, PasswordRecovery
 from django.contrib.auth import get_user_model
-from django.db.models import QuerySet
-from django.db.models import Q
-from django.db.models import F
+from django.db.models import QuerySet, Q, F
 
 import graphene
 from graphql import GraphQLError
