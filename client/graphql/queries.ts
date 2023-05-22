@@ -26,9 +26,21 @@ export const ALL_RECEIPTS_BY_USER_QUERY = gql`
 `;
 
 
-export const TOTAL_EXPENDITURE_BY_DATE = gql`query TotalExpenditureByDate($dateGte: Date!, $dateLte: Date!) {
-  totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
-}
-`
+export const TOTAL_EXPENDITURE_BY_DATE = gql`
+  query TotalExpenditureByDate($dateGte: Date!, $dateLte: Date!) {
+    totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
+  }
+`;
 
-// add q
+export const USER_QUERY = gql`
+  query User {
+    user {
+      id
+      username
+      email
+      dateJoined
+      receiptCount
+      tagsCount
+    }
+  }
+`;
