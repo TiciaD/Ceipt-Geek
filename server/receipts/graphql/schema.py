@@ -322,7 +322,14 @@ class DecimalType(graphene.Scalar):
     def parse_value(value):
         return Decimal(value)
 
+class ExtendedConnection(graphene.Connection):
+    class Meta:
+        abstract = True
 
+    total_count = graphene.Int()
+
+    def resolve_total_count(root, info, **kwargs):
+        return root.length
 
 class ReceiptType(DjangoObjectType):
     cost = DecimalType()
@@ -340,19 +347,19 @@ class ReceiptType(DjangoObjectType):
 class ReceiptNode(DjangoObjectType):
     cost = DecimalType()
     tax = DecimalType()
+    id = graphene.ID(source='pk', required=True)
+    relay_id = graphene.Field(graphene.ID, description="Relay ID")
 
     class Meta:
         model = Receipt
         filter_fields = ['user']
         interfaces = (relay.Node, )
+        connection_class = ExtendedConnection
     
     def resolve_receipt_image(self, info):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
-    
-    id = graphene.ID(source='pk', required=True)
-    relay_id = graphene.Field(graphene.ID, description="Relay ID")
 
     def resolve_relay_id(self, info):
         return to_global_id('ReceiptNode', self.pk)
@@ -444,7 +451,7 @@ class ReceiptQuery(ObjectType):
         if sort_by:
             receipts = sort_dataset(receipts, sort_by)
         
-        return receipts
+        return receipts.order_by('id')
 
     @staticmethod
     def filter_queryset(qs: QuerySet, condition) -> QuerySet:

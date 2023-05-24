@@ -278,6 +278,7 @@ export type ReceiptNodeConnection = {
   edges: Array<Maybe<ReceiptNodeEdge>>;
   /** Pagination data for this connection. */
   pageInfo: PageInfo;
+  totalCount?: Maybe<Scalars['Int']>;
 };
 
 /** A Relay edge containing a `ReceiptNode` and its cursor. */
@@ -303,6 +304,7 @@ export type ReceiptType = {
   user: UserType;
 };
 
+/** An enumeration. */
 export type ReceiptsReceiptExpenseChoices =
   /** Child Care */
   | 'CHILD_CARE'
@@ -437,7 +439,7 @@ export type AllReceiptsByUserQueryVariables = Exact<{
 }>;
 
 
-export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: { __typename?: 'ReceiptNodeConnection', edges: Array<{ __typename?: 'ReceiptNodeEdge', cursor: string, node?: { __typename?: 'ReceiptNode', id: string, storeName: string, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, tags: Array<{ __typename?: 'TagType', id: string, tagName: string }> } | null } | null>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } | null };
+export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: { __typename?: 'ReceiptNodeConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', startCursor?: string | null, endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ReceiptNodeEdge', cursor: string, node?: { __typename?: 'ReceiptNode', id: string, storeName: string, tax?: any | null, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, notes?: string | null, tags: Array<{ __typename?: 'TagType', tagName: string }> } | null } | null> } | null };
 
 export type TotalExpenditureByDateQueryVariables = Exact<{
   dateGte: Scalars['Date'];
@@ -528,23 +530,27 @@ export type AuthMutationOptions = Apollo.BaseMutationOptions<AuthMutation, AuthM
 export const AllReceiptsByUserDocument = gql`
     query AllReceiptsByUser($first: Int!, $after: String) {
   allReceiptsByUser(first: $first, after: $after) {
+    totalCount
+    pageInfo {
+      startCursor
+      endCursor
+      hasNextPage
+      hasPreviousPage
+    }
     edges {
       cursor
       node {
         id
         storeName
+        tax
         cost
         date
         expense
+        notes
         tags {
-          id
           tagName
         }
       }
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
     }
   }
 }
@@ -698,10 +704,11 @@ export type ReceiptNodeFieldPolicy = {
 	tax?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>
 };
-export type ReceiptNodeConnectionKeySpecifier = ('edges' | 'pageInfo' | ReceiptNodeConnectionKeySpecifier)[];
+export type ReceiptNodeConnectionKeySpecifier = ('edges' | 'pageInfo' | 'totalCount' | ReceiptNodeConnectionKeySpecifier)[];
 export type ReceiptNodeConnectionFieldPolicy = {
 	edges?: FieldPolicy<any> | FieldReadFunction<any>,
-	pageInfo?: FieldPolicy<any> | FieldReadFunction<any>
+	pageInfo?: FieldPolicy<any> | FieldReadFunction<any>,
+	totalCount?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type ReceiptNodeEdgeKeySpecifier = ('cursor' | 'node' | ReceiptNodeEdgeKeySpecifier)[];
 export type ReceiptNodeEdgeFieldPolicy = {
