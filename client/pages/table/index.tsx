@@ -4,12 +4,19 @@ import {
   GridColDef,
   GridValueFormatterParams,
   GridRenderCellParams,
+  GridActionsCellItem,
 } from "@mui/x-data-grid";
 import { Button, Chip, Grid, LinearProgress, useTheme } from "@mui/material";
 import GridCellExpand from "../../components/GridCellExpand";
 import queryReceiptData from "../../utils/queryReceiptData";
 import NoRowsOverlay from "../../components/NoRowsOverlay";
 import CustomGridToolbar from "../../components/CustomGridToolbar";
+
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Close";
 
 export interface IRow {
   id: string;
@@ -92,13 +99,6 @@ export default function ReceiptsTable() {
       type: "date",
       width: 120,
       valueGetter: ({ value }) => value && new Date(value),
-      valueFormatter: (params) => {
-        return params.value.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-      },
     },
     { field: "storeName", headerName: "Store Name", width: 140 },
     {
@@ -143,7 +143,7 @@ export default function ReceiptsTable() {
       field: "notes",
       headerName: "Notes",
       width: 200,
-      // renderCell: renderCellExpand,
+      renderCell: renderCellExpand,
     },
     {
       field: "tags",
@@ -176,6 +176,30 @@ export default function ReceiptsTable() {
             })}
           </Grid>
         );
+      },
+    },
+    {
+      field: "actions",
+      type: "actions",
+      headerName: "Actions",
+      width: 100,
+      cellClassName: "actions",
+      getActions: (params) => {
+        return [
+          <GridActionsCellItem
+            icon={<EditIcon />}
+            label="Edit"
+            className="textPrimary"
+            onClick={() => console.log("edit", params.row.id)}
+            color="primary"
+          />,
+          <GridActionsCellItem
+            icon={<DeleteIcon />}
+            label="Delete"
+            onClick={() => console.log("delete", params.row.id)}
+            color="error"
+          />,
+        ];
       },
     },
   ];
