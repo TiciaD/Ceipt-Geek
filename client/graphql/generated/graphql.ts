@@ -449,6 +449,13 @@ export type TotalExpenditureByDateQueryVariables = Exact<{
 
 export type TotalExpenditureByDateQuery = { __typename?: 'Query', totalExpenditureByDate?: number | null };
 
+export type DeleteReceiptMutationVariables = Exact<{
+  receiptId: Scalars['ID'];
+}>;
+
+
+export type DeleteReceiptMutation = { __typename?: 'Mutation', deleteReceipt?: { __typename?: 'DeleteReceipt', success?: boolean | null } | null };
+
 
 export const CreateAccountDocument = gql`
     mutation CreateAccount($email: String!, $password: String!, $username: String!) {
@@ -618,6 +625,39 @@ export function useTotalExpenditureByDateLazyQuery(baseOptions?: Apollo.LazyQuer
 export type TotalExpenditureByDateQueryHookResult = ReturnType<typeof useTotalExpenditureByDateQuery>;
 export type TotalExpenditureByDateLazyQueryHookResult = ReturnType<typeof useTotalExpenditureByDateLazyQuery>;
 export type TotalExpenditureByDateQueryResult = Apollo.QueryResult<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>;
+export const DeleteReceiptDocument = gql`
+    mutation DeleteReceipt($receiptId: ID!) {
+  deleteReceipt(receiptId: $receiptId) {
+    success
+  }
+}
+    `;
+export type DeleteReceiptMutationFn = Apollo.MutationFunction<DeleteReceiptMutation, DeleteReceiptMutationVariables>;
+
+/**
+ * __useDeleteReceiptMutation__
+ *
+ * To run a mutation, you first call `useDeleteReceiptMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteReceiptMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteReceiptMutation, { data, loading, error }] = useDeleteReceiptMutation({
+ *   variables: {
+ *      receiptId: // value for 'receiptId'
+ *   },
+ * });
+ */
+export function useDeleteReceiptMutation(baseOptions?: Apollo.MutationHookOptions<DeleteReceiptMutation, DeleteReceiptMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteReceiptMutation, DeleteReceiptMutationVariables>(DeleteReceiptDocument, options);
+      }
+export type DeleteReceiptMutationHookResult = ReturnType<typeof useDeleteReceiptMutation>;
+export type DeleteReceiptMutationResult = Apollo.MutationResult<DeleteReceiptMutation>;
+export type DeleteReceiptMutationOptions = Apollo.BaseMutationOptions<DeleteReceiptMutation, DeleteReceiptMutationVariables>;
 export type CreateReceiptKeySpecifier = ('receipt' | CreateReceiptKeySpecifier)[];
 export type CreateReceiptFieldPolicy = {
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>

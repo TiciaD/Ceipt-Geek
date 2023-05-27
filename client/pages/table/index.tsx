@@ -5,18 +5,18 @@ import {
   GridValueFormatterParams,
   GridRenderCellParams,
   GridActionsCellItem,
+  GridRowId,
 } from "@mui/x-data-grid";
 import { Button, Chip, Grid, LinearProgress, useTheme } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/DeleteOutlined";
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
+
 import GridCellExpand from "../../components/GridCellExpand";
-import queryReceiptData from "../../utils/queryReceiptData";
 import NoRowsOverlay from "../../components/NoRowsOverlay";
 import CustomGridToolbar from "../../components/CustomGridToolbar";
 
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/DeleteOutlined";
-import SaveIcon from "@mui/icons-material/Save";
-import CancelIcon from "@mui/icons-material/Close";
+import queryReceiptData from "../../utils/queryReceiptData";
+import { useDeleteReceiptMutation } from "../../graphql/generated/graphql";
 
 export interface IRow {
   id: string;
@@ -59,10 +59,28 @@ const expenseMap = {
 
 export default function ReceiptsTable() {
   const theme = useTheme();
+  const [deleteReceiptMutation] = useDeleteReceiptMutation();
   const [rows, setRows] = useState<IRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   queryReceiptData(setRows, setLoading);
+
+  const handleDeleteReceipt = (id: GridRowId) => {
+    deleteReceiptMutation({
+      variables: {
+        receiptId: String(id),
+      },
+      onCompleted: (data) => {
+        if (data?.deleteReceipt?.success) {
+          setRows(rows.filter((row) => row.id !== id));
+        }
+      },
+      onError: (error) => {
+        console.log(error.message);
+      },
+      fetchPolicy: "network-only",
+    });
+  };
 
   function renderCellExpand(params: GridRenderCellParams<any, string>) {
     return (
@@ -74,31 +92,38 @@ export default function ReceiptsTable() {
   }
 
   const columns: GridColDef[] = [
-    {
-      field: "Open Receipt Button",
-      headerName: "",
-      width: 90,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: (params) => (
-        <Button
-          variant="outlined"
-          size="small"
-          style={{ margin: "auto" }}
-          tabIndex={params.hasFocus ? 0 : -1}
-          onClick={() => console.log(params.row.id)}
-        >
-          open
-        </Button>
-      ),
-    },
+    // {
+    //   field: "Open Receipt Button",
+    //   headerName: "",
+    //   width: 90,
+    //   sortable: false,
+    //   filterable: false,
+    //   disableColumnMenu: true,
+    //   renderCell: (params) => (
+    //     <Button
+    //       variant="outlined"
+    //       size="small"
+    //       style={{ margin: "auto" }}
+    //       tabIndex={params.hasFocus ? 0 : -1}
+    //       onClick={() => console.log(params.row.id)}
+    //     >
+    //       open
+    //     </Button>
+    //   ),
+    // },
     {
       field: "date",
       headerName: "Date",
       type: "date",
       width: 120,
       valueGetter: ({ value }) => value && new Date(value),
+      valueFormatter: ({ value }) =>
+        value &&
+        value.toLocaleDateString("en-us", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
     },
     { field: "storeName", headerName: "Store Name", width: 140 },
     {
@@ -180,23 +205,30 @@ export default function ReceiptsTable() {
     },
     {
       field: "actions",
-      type: "actions",
       headerName: "Actions",
+      type: "actions",
       width: 100,
       cellClassName: "actions",
       getActions: (params) => {
         return [
+          //   icon={<EditIcon />}
+          //   label="Edit"
+          //   className="textPrimary"
+          //   onClick={() => console.log("edit", params.row.id)}
+          //   color="primary"
+          // />,
           <GridActionsCellItem
-            icon={<EditIcon />}
-            label="Edit"
-            className="textPrimary"
-            onClick={() => console.log("edit", params.row.id)}
+            icon={<ReceiptLongOutlinedIcon />}
+            label="Open Receipt"
+            title="Open Receipt"
+            onClick={() => console.log("open", params.row.id)}
             color="primary"
           />,
           <GridActionsCellItem
             icon={<DeleteIcon />}
-            label="Delete"
-            onClick={() => console.log("delete", params.row.id)}
+            label="Delete Receipt"
+            title="Delete Receipt"
+            onClick={() => handleDeleteReceipt(params.row.id)}
             color="error"
           />,
         ];

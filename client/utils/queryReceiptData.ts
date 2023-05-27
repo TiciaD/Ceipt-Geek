@@ -17,7 +17,7 @@ export default function queryReceiptData(
   useEffect(() => {
     getReceipts({
       variables: {
-        first: 2,
+        first: 50,
       },
       onCompleted: (data) => {
         if (data.allReceiptsByUser?.edges) {
@@ -40,7 +40,7 @@ export default function queryReceiptData(
       onError: (error) => {
         console.log(error);
         logout();
-        router.push("/");
+        router.push("/login");
       },
       fetchPolicy: "cache-and-network",
     });
@@ -50,7 +50,7 @@ export default function queryReceiptData(
     if (nextPage) {
       getReceipts({
         variables: {
-          first: 2,
+          first: 50,
           after: cursor,
         },
         onCompleted: (data) => {
@@ -73,7 +73,7 @@ export default function queryReceiptData(
         onError: (error) => {
           console.log(error);
           logout();
-          router.push("/");
+          router.push("/login");
         },
         fetchPolicy: "cache-and-network",
       });
