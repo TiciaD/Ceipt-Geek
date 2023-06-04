@@ -25,7 +25,7 @@ const StyledGridOverlay = styled("div")(({ theme }) => ({
   },
 }));
 
-export default function NoRowsOverlay() {
+export default function NoReceiptsOverlay() {
   return (
     <StyledGridOverlay>
       <svg

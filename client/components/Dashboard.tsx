@@ -1,20 +1,10 @@
 import { Box, Card, CardContent, Typography } from "@mui/material";
+
 import { useTotalExpenditureByDateQuery } from "../graphql/generated/graphql";
 import DashboardTable from "./DashboardTable";
-
-// export interface GroupedReceipt {
-//   date: string;
-//   receipts: ReceiptNodeEdge[];
-// }
+import GraphCarousel from "./GraphCarousel";
 
 export default function Dashboard() {
-  // const allReceipts = useAllReceiptsByUserQuery({
-  //   variables: {
-  //     first: 10, // replace with the desired value
-  //   },
-  // });
-
-  // Get current date
   const currentDate = new Date();
   const todayFormattedDate = currentDate.toISOString().split("T")[0];
 
@@ -36,40 +26,9 @@ export default function Dashboard() {
     },
   });
 
-  // if (allReceipts.loading) {
-  //   return <p>Loading...</p>;
-  // }
-
-  // if (allReceipts.error) {
-  //   return <p>Error {allReceipts.error.message}</p>;
-  // }
-
-  // let receipts = allReceipts.data?.allReceiptsByUser
-  //   ?.edges as ReceiptNodeEdge[];
-  // Group receipts by date
-  // const groupedReceipts = receipts
-  //   ? receipts.reduce(
-  //       (accumulator: GroupedReceipt[], currentValue: ReceiptNodeEdge) => {
-  //         const existingReceipts = accumulator.find(
-  //           (item) => item.date === currentValue.node?.date
-  //         );
-  //         if (existingReceipts) {
-  //           existingReceipts.receipts.push(currentValue);
-  //         } else {
-  //           accumulator.push({
-  //             date: currentValue.node?.date,
-  //             receipts: [currentValue],
-  //           });
-  //         }
-  //         return accumulator;
-  //       },
-  //       []
-  //     )
-  //   : [];
-
   return (
     <>
-      <Card sx={{ width: "auto", padding: "2rem", marginBottom: "2rem" }}>
+      <Card sx={{ width: "auto", padding: "2rem", }}>
         <CardContent>
           <Typography
             variant="h4"
@@ -125,6 +84,7 @@ export default function Dashboard() {
           {/* TODO: Add Doughnut Chart from Chart.js  */}
         </CardContent>
       </Card>
+      <GraphCarousel />
       <DashboardTable />
     </>
   );

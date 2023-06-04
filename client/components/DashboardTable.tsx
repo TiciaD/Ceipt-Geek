@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
+
 import {
   DataGrid,
   GridColDef,
@@ -9,6 +11,7 @@ import {
 } from "@mui/x-data-grid";
 import {
   Alert,
+  Box,
   Button,
   Chip,
   Grid,
@@ -20,11 +23,12 @@ import DeleteIcon from "@mui/icons-material/DeleteOutlined";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
 import GridCellExpand from "./GridCellExpand";
-import NoRowsOverlay from "./NoRowsOverlay";
+import NoReceiptsOverlay from "./NoReceiptsOverlay";
 import CustomGridToolbar from "./CustomGridToolbar";
 
 import queryReceiptData from "../utils/queryReceiptData";
 import { useDeleteReceiptMutation } from "../graphql/generated/graphql";
+import expenseMap from "../constants/expenseMap";
 
 export interface IRow {
   id: string;
@@ -39,34 +43,9 @@ export interface IRow {
   }[];
 }
 
-const expenseMap = {
-  FOOD: "Food",
-  HOUSING: "Housing",
-  TRANSPORTATION: "Transportation",
-  ENTERTAINMENT: "Entertainement",
-  EDUCATION: "Education",
-  HEALTHCARE: "Healthcare",
-  UTILITIES: "Utilities",
-  CLOTHING: "Clothing",
-  PHONE: "Phone",
-  PERSONAL_CARE: "Personal Care",
-  PET_CARE: "Pet Care",
-  CHILD_CARE: "Child Care",
-  MEMBERSHIPS_AND_SUBSCRIPTIONS: "Memberships and Subscriptions",
-  GIFTS: "Gifts",
-  TRAVEL: "Travel",
-  DEBT_REPAYMENT: "Debt Repayment",
-  SAVINGS: "Savings",
-  INVESTMENTS: "Investments",
-  EMERGENCY_FUND: "Emergency Fund",
-  LARGE_PURCHASES: "Large Purchases",
-  LEGAL: "Legal",
-  TAXES: "Taxes",
-  OTHER: "Other",
-};
-
 export default function ReceiptsTable() {
   const theme = useTheme();
+  const router = useRouter();
   const [deleteReceiptMutation] = useDeleteReceiptMutation();
   const [rows, setRows] = useState<IRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,7 +121,7 @@ export default function ReceiptsTable() {
       headerName: "Expense",
       width: 160,
       valueGetter: ({ value }: { value: string }) => {
-        return value && (expenseMap as Record<string, string>)[value];
+        return value && expenseMap[value].displayString;
       },
     },
     {
@@ -232,7 +211,7 @@ export default function ReceiptsTable() {
             icon={<ReceiptLongOutlinedIcon />}
             label="Open Receipt"
             title="Open Receipt"
-            onClick={() => console.log("open", params.row.id)}
+            onClick={() => router.push(`/receiptdetails/${params.row.id}`)}
             color="primary"
           />,
           <GridActionsCellItem
@@ -259,12 +238,12 @@ export default function ReceiptsTable() {
           {error}
         </Alert>
       </Snackbar>
-      <div style={{ height: "800px" }}>
+      <Box height={900}>
         <DataGrid
           rows={rows}
           columns={columns}
           pageSizeOptions={[5, 10, 20, 50, 100]}
-          onRowDoubleClick={(row) => console.log("RowDoubleClick", row.id)}
+          onRowDoubleClick={(row) => router.push(`/receiptdetails/${row.id}`)}
           getRowHeight={() => "auto"}
           rowCount={rows.length}
           loading={loading}
@@ -310,11 +289,11 @@ export default function ReceiptsTable() {
           slots={{
             toolbar: CustomGridToolbar,
             loadingOverlay: LinearProgress,
-            noRowsOverlay: NoRowsOverlay,
-            noResultsOverlay: NoRowsOverlay,
+            noRowsOverlay: NoReceiptsOverlay,
+            noResultsOverlay: NoReceiptsOverlay,
           }}
         />
-      </div>
+      </Box>
     </>
   );
 }

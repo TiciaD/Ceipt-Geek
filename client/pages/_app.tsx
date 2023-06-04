@@ -172,7 +172,7 @@ function App({ Component, pageProps }: AppProps) {
     <ColorModeContext.Provider value={colorMode}>
       <AuthContext.Provider value={authContextValues}>
         <ThemeProvider theme={activeTheme}>
-          <CssBaseline />
+          <CssBaseline enableColorScheme />
           <Layout>
             <ApolloProvider client={client}>
               <Component {...pageProps} toggleTheme={toggleTheme} />

@@ -456,6 +456,16 @@ export type DeleteReceiptMutationVariables = Exact<{
 
 export type DeleteReceiptMutation = { __typename?: 'Mutation', deleteReceipt?: { __typename?: 'DeleteReceipt', success?: boolean | null } | null };
 
+export type ExpenseDataByDateQueryVariables = Exact<{
+  first: Scalars['Int'];
+  after?: InputMaybe<Scalars['String']>;
+  dateGte: Scalars['Date'];
+  dateLte: Scalars['Date'];
+}>;
+
+
+export type ExpenseDataByDateQuery = { __typename?: 'Query', filteredReceipts?: { __typename?: 'ReceiptNodeConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ReceiptNodeEdge', node?: { __typename?: 'ReceiptNode', expense: ReceiptsReceiptExpenseChoices, cost?: any | null } | null } | null> } | null };
+
 
 export const CreateAccountDocument = gql`
     mutation CreateAccount($email: String!, $password: String!, $username: String!) {
@@ -658,6 +668,58 @@ export function useDeleteReceiptMutation(baseOptions?: Apollo.MutationHookOption
 export type DeleteReceiptMutationHookResult = ReturnType<typeof useDeleteReceiptMutation>;
 export type DeleteReceiptMutationResult = Apollo.MutationResult<DeleteReceiptMutation>;
 export type DeleteReceiptMutationOptions = Apollo.BaseMutationOptions<DeleteReceiptMutation, DeleteReceiptMutationVariables>;
+export const ExpenseDataByDateDocument = gql`
+    query ExpenseDataByDate($first: Int!, $after: String, $dateGte: Date!, $dateLte: Date!) {
+  filteredReceipts(
+    first: $first
+    after: $after
+    dateGte: $dateGte
+    dateLte: $dateLte
+  ) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      node {
+        expense
+        cost
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useExpenseDataByDateQuery__
+ *
+ * To run a query within a React component, call `useExpenseDataByDateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useExpenseDataByDateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useExpenseDataByDateQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      dateGte: // value for 'dateGte'
+ *      dateLte: // value for 'dateLte'
+ *   },
+ * });
+ */
+export function useExpenseDataByDateQuery(baseOptions: Apollo.QueryHookOptions<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>(ExpenseDataByDateDocument, options);
+      }
+export function useExpenseDataByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>(ExpenseDataByDateDocument, options);
+        }
+export type ExpenseDataByDateQueryHookResult = ReturnType<typeof useExpenseDataByDateQuery>;
+export type ExpenseDataByDateLazyQueryHookResult = ReturnType<typeof useExpenseDataByDateLazyQuery>;
+export type ExpenseDataByDateQueryResult = Apollo.QueryResult<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>;
 export type CreateReceiptKeySpecifier = ('receipt' | CreateReceiptKeySpecifier)[];
 export type CreateReceiptFieldPolicy = {
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>

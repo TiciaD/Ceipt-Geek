@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { IRow } from "../pages/table";
+import { IRow } from "../components/DashboardTable";
 import { useAllReceiptsByUserLazyQuery } from "../graphql/generated/graphql";
 import { useAuth } from "./useAuth";
 
