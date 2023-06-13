@@ -18,6 +18,7 @@ export default function Dashboard({ router }: DashboardProps) {
     variables: {
       first: 10, // replace with the desired value
     },
+    fetchPolicy: "cache-and-network"
   });
 
   // Get current date

@@ -74,3 +74,22 @@ export const DELETE_ACCOUNT_MUTATION = gql`
     }
   }
 `
+
+export const UPDATE_RECEIPT_MUTATION = gql`
+  mutation UpdateReceipt($receiptId: ID!, $receiptData: ReceiptInput!) {
+    updateReceipt(receiptId: $receiptId, receiptData: $receiptData) {
+      receipt {
+        storeName
+        date
+        expense
+        tax
+        cost
+        notes
+        tags {
+          tagName
+        }
+        receiptImage
+      }
+    }
+  }
+`;

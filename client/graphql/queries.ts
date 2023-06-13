@@ -44,3 +44,20 @@ export const USER_QUERY = gql`
     }
   }
 `;
+
+export const GET_RECEIPT = gql`
+  query Receipt($receiptId: String!) {
+    receipt(receiptId: $receiptId) {
+      storeName
+      expense
+      cost
+      tax
+      date
+      receiptImage
+      tags{
+        tagName
+      }
+      notes
+    }
+  }
+`;

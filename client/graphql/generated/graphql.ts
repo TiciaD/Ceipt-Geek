@@ -65,11 +65,21 @@ export type ExtendedUserType = {
   lastLogin?: Maybe<Scalars['DateTime']>;
   lastName: Scalars['String'];
   receiptCount?: Maybe<Scalars['Int']>;
-  receiptSet: Array<ReceiptType>;
+  receiptSet: ReceiptNodeConnection;
   tagSet: Array<TagType>;
   tagsCount?: Maybe<Scalars['Int']>;
   /** Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
   username: Scalars['String'];
+};
+
+
+export type ExtendedUserTypeReceiptSetArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 export type LoginMutation = {
@@ -292,7 +302,7 @@ export type ReceiptNode = Node & {
   storeName: Scalars['String'];
   tags: Array<TagType>;
   tax?: Maybe<Scalars['DecimalType']>;
-  user: UserType;
+  user: ExtendedUserType;
 };
 
 export type ReceiptNodeConnection = {
@@ -326,7 +336,6 @@ export type ReceiptType = {
   user: ExtendedUserType;
 };
 
-/** An enumeration. */
 export type ReceiptsReceiptExpenseChoices =
   /** Child Care */
   | 'CHILD_CARE'
@@ -380,7 +389,7 @@ export type TagType = {
   id: Scalars['ID'];
   receiptSet: ReceiptNodeConnection;
   tagName: Scalars['String'];
-  user: UserType;
+  user: ExtendedUserType;
 };
 
 
@@ -455,27 +464,6 @@ export type AuthMutationVariables = Exact<{
 
 export type AuthMutation = { __typename?: 'Mutation', login?: { __typename?: 'LoginMutation', token?: string | null, success?: boolean | null } | null };
 
-export type AllReceiptsByUserQueryVariables = Exact<{
-  first: Scalars['Int'];
-  after?: InputMaybe<Scalars['String']>;
-}>;
-
-
-export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: { __typename?: 'ReceiptNodeConnection', edges: Array<{ __typename?: 'ReceiptNodeEdge', cursor: string, node?: { __typename?: 'ReceiptNode', id: string, storeName: string, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, tags: Array<{ __typename?: 'TagType', id: string, tagName: string }> } | null } | null>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } | null };
-
-export type TotalExpenditureByDateQueryVariables = Exact<{
-  dateGte: Scalars['Date'];
-  dateLte: Scalars['Date'];
-}>;
-
-
-export type TotalExpenditureByDateQuery = { __typename?: 'Query', totalExpenditureByDate?: number | null };
-
-export type UserQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'ExtendedUserType', id: string, username: string, email: string, dateJoined: any, receiptCount?: number | null, tagsCount?: number | null } | null };
-
 export type UpdateUsernameMutationVariables = Exact<{
   username: Scalars['String'];
 }>;
@@ -503,6 +491,42 @@ export type DeleteAccountMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type DeleteAccountMutation = { __typename?: 'Mutation', deleteUser?: { __typename?: 'DeleteUser', success?: boolean | null } | null };
+
+export type UpdateReceiptMutationVariables = Exact<{
+  receiptId: Scalars['ID'];
+  receiptData: ReceiptInput;
+}>;
+
+
+export type UpdateReceiptMutation = { __typename?: 'Mutation', updateReceipt?: { __typename?: 'UpdateReceipt', receipt?: { __typename?: 'ReceiptType', storeName: string, date: any, expense: ReceiptsReceiptExpenseChoices, tax?: any | null, cost?: any | null, notes?: string | null, receiptImage?: string | null, tags: Array<{ __typename?: 'TagType', tagName: string }> } | null } | null };
+
+export type AllReceiptsByUserQueryVariables = Exact<{
+  first: Scalars['Int'];
+  after?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: { __typename?: 'ReceiptNodeConnection', edges: Array<{ __typename?: 'ReceiptNodeEdge', cursor: string, node?: { __typename?: 'ReceiptNode', id: string, storeName: string, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, tags: Array<{ __typename?: 'TagType', id: string, tagName: string }> } | null } | null>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } | null };
+
+export type TotalExpenditureByDateQueryVariables = Exact<{
+  dateGte: Scalars['Date'];
+  dateLte: Scalars['Date'];
+}>;
+
+
+export type TotalExpenditureByDateQuery = { __typename?: 'Query', totalExpenditureByDate?: number | null };
+
+export type UserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'ExtendedUserType', id: string, username: string, email: string, dateJoined: any, receiptCount?: number | null, tagsCount?: number | null } | null };
+
+export type ReceiptQueryVariables = Exact<{
+  receiptId: Scalars['String'];
+}>;
+
+
+export type ReceiptQuery = { __typename?: 'Query', receipt?: { __typename?: 'ReceiptType', storeName: string, expense: ReceiptsReceiptExpenseChoices, cost?: any | null, tax?: any | null, date: any, receiptImage?: string | null, notes?: string | null, tags: Array<{ __typename?: 'TagType', tagName: string }> } | null };
 
 
 export const CreateAccountDocument = gql`
@@ -582,132 +606,6 @@ export function useAuthMutation(baseOptions?: Apollo.MutationHookOptions<AuthMut
 export type AuthMutationHookResult = ReturnType<typeof useAuthMutation>;
 export type AuthMutationResult = Apollo.MutationResult<AuthMutation>;
 export type AuthMutationOptions = Apollo.BaseMutationOptions<AuthMutation, AuthMutationVariables>;
-export const AllReceiptsByUserDocument = gql`
-    query AllReceiptsByUser($first: Int!, $after: String) {
-  allReceiptsByUser(first: $first, after: $after) {
-    edges {
-      cursor
-      node {
-        id
-        storeName
-        cost
-        date
-        expense
-        tags {
-          id
-          tagName
-        }
-      }
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-    }
-  }
-}
-    `;
-
-/**
- * __useAllReceiptsByUserQuery__
- *
- * To run a query within a React component, call `useAllReceiptsByUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useAllReceiptsByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAllReceiptsByUserQuery({
- *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
- *   },
- * });
- */
-export function useAllReceiptsByUserQuery(baseOptions: Apollo.QueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
-      }
-export function useAllReceiptsByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
-        }
-export type AllReceiptsByUserQueryHookResult = ReturnType<typeof useAllReceiptsByUserQuery>;
-export type AllReceiptsByUserLazyQueryHookResult = ReturnType<typeof useAllReceiptsByUserLazyQuery>;
-export type AllReceiptsByUserQueryResult = Apollo.QueryResult<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>;
-export const TotalExpenditureByDateDocument = gql`
-    query TotalExpenditureByDate($dateGte: Date!, $dateLte: Date!) {
-  totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
-}
-    `;
-
-/**
- * __useTotalExpenditureByDateQuery__
- *
- * To run a query within a React component, call `useTotalExpenditureByDateQuery` and pass it any options that fit your needs.
- * When your component renders, `useTotalExpenditureByDateQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useTotalExpenditureByDateQuery({
- *   variables: {
- *      dateGte: // value for 'dateGte'
- *      dateLte: // value for 'dateLte'
- *   },
- * });
- */
-export function useTotalExpenditureByDateQuery(baseOptions: Apollo.QueryHookOptions<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>(TotalExpenditureByDateDocument, options);
-      }
-export function useTotalExpenditureByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>(TotalExpenditureByDateDocument, options);
-        }
-export type TotalExpenditureByDateQueryHookResult = ReturnType<typeof useTotalExpenditureByDateQuery>;
-export type TotalExpenditureByDateLazyQueryHookResult = ReturnType<typeof useTotalExpenditureByDateLazyQuery>;
-export type TotalExpenditureByDateQueryResult = Apollo.QueryResult<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>;
-export const UserDocument = gql`
-    query User {
-  user {
-    id
-    username
-    email
-    dateJoined
-    receiptCount
-    tagsCount
-  }
-}
-    `;
-
-/**
- * __useUserQuery__
- *
- * To run a query within a React component, call `useUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useUserQuery({
- *   variables: {
- *   },
- * });
- */
-export function useUserQuery(baseOptions?: Apollo.QueryHookOptions<UserQuery, UserQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<UserQuery, UserQueryVariables>(UserDocument, options);
-      }
-export function useUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserQuery, UserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<UserQuery, UserQueryVariables>(UserDocument, options);
-        }
-export type UserQueryHookResult = ReturnType<typeof useUserQuery>;
-export type UserLazyQueryHookResult = ReturnType<typeof useUserLazyQuery>;
-export type UserQueryResult = Apollo.QueryResult<UserQuery, UserQueryVariables>;
 export const UpdateUsernameDocument = gql`
     mutation UpdateUsername($username: String!) {
   updateUser(username: $username) {
@@ -849,6 +747,221 @@ export function useDeleteAccountMutation(baseOptions?: Apollo.MutationHookOption
 export type DeleteAccountMutationHookResult = ReturnType<typeof useDeleteAccountMutation>;
 export type DeleteAccountMutationResult = Apollo.MutationResult<DeleteAccountMutation>;
 export type DeleteAccountMutationOptions = Apollo.BaseMutationOptions<DeleteAccountMutation, DeleteAccountMutationVariables>;
+export const UpdateReceiptDocument = gql`
+    mutation UpdateReceipt($receiptId: ID!, $receiptData: ReceiptInput!) {
+  updateReceipt(receiptId: $receiptId, receiptData: $receiptData) {
+    receipt {
+      storeName
+      date
+      expense
+      tax
+      cost
+      notes
+      tags {
+        tagName
+      }
+      receiptImage
+    }
+  }
+}
+    `;
+export type UpdateReceiptMutationFn = Apollo.MutationFunction<UpdateReceiptMutation, UpdateReceiptMutationVariables>;
+
+/**
+ * __useUpdateReceiptMutation__
+ *
+ * To run a mutation, you first call `useUpdateReceiptMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateReceiptMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateReceiptMutation, { data, loading, error }] = useUpdateReceiptMutation({
+ *   variables: {
+ *      receiptId: // value for 'receiptId'
+ *      receiptData: // value for 'receiptData'
+ *   },
+ * });
+ */
+export function useUpdateReceiptMutation(baseOptions?: Apollo.MutationHookOptions<UpdateReceiptMutation, UpdateReceiptMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateReceiptMutation, UpdateReceiptMutationVariables>(UpdateReceiptDocument, options);
+      }
+export type UpdateReceiptMutationHookResult = ReturnType<typeof useUpdateReceiptMutation>;
+export type UpdateReceiptMutationResult = Apollo.MutationResult<UpdateReceiptMutation>;
+export type UpdateReceiptMutationOptions = Apollo.BaseMutationOptions<UpdateReceiptMutation, UpdateReceiptMutationVariables>;
+export const AllReceiptsByUserDocument = gql`
+    query AllReceiptsByUser($first: Int!, $after: String) {
+  allReceiptsByUser(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        storeName
+        cost
+        date
+        expense
+        tags {
+          id
+          tagName
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useAllReceiptsByUserQuery__
+ *
+ * To run a query within a React component, call `useAllReceiptsByUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllReceiptsByUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllReceiptsByUserQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useAllReceiptsByUserQuery(baseOptions: Apollo.QueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
+      }
+export function useAllReceiptsByUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
+        }
+export type AllReceiptsByUserQueryHookResult = ReturnType<typeof useAllReceiptsByUserQuery>;
+export type AllReceiptsByUserLazyQueryHookResult = ReturnType<typeof useAllReceiptsByUserLazyQuery>;
+export type AllReceiptsByUserQueryResult = Apollo.QueryResult<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>;
+export const TotalExpenditureByDateDocument = gql`
+    query TotalExpenditureByDate($dateGte: Date!, $dateLte: Date!) {
+  totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
+}
+    `;
+
+/**
+ * __useTotalExpenditureByDateQuery__
+ *
+ * To run a query within a React component, call `useTotalExpenditureByDateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTotalExpenditureByDateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTotalExpenditureByDateQuery({
+ *   variables: {
+ *      dateGte: // value for 'dateGte'
+ *      dateLte: // value for 'dateLte'
+ *   },
+ * });
+ */
+export function useTotalExpenditureByDateQuery(baseOptions: Apollo.QueryHookOptions<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>(TotalExpenditureByDateDocument, options);
+      }
+export function useTotalExpenditureByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>(TotalExpenditureByDateDocument, options);
+        }
+export type TotalExpenditureByDateQueryHookResult = ReturnType<typeof useTotalExpenditureByDateQuery>;
+export type TotalExpenditureByDateLazyQueryHookResult = ReturnType<typeof useTotalExpenditureByDateLazyQuery>;
+export type TotalExpenditureByDateQueryResult = Apollo.QueryResult<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>;
+export const UserDocument = gql`
+    query User {
+  user {
+    id
+    username
+    email
+    dateJoined
+    receiptCount
+    tagsCount
+  }
+}
+    `;
+
+/**
+ * __useUserQuery__
+ *
+ * To run a query within a React component, call `useUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUserQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUserQuery(baseOptions?: Apollo.QueryHookOptions<UserQuery, UserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UserQuery, UserQueryVariables>(UserDocument, options);
+      }
+export function useUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UserQuery, UserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UserQuery, UserQueryVariables>(UserDocument, options);
+        }
+export type UserQueryHookResult = ReturnType<typeof useUserQuery>;
+export type UserLazyQueryHookResult = ReturnType<typeof useUserLazyQuery>;
+export type UserQueryResult = Apollo.QueryResult<UserQuery, UserQueryVariables>;
+export const ReceiptDocument = gql`
+    query Receipt($receiptId: String!) {
+  receipt(receiptId: $receiptId) {
+    storeName
+    expense
+    cost
+    tax
+    date
+    receiptImage
+    tags {
+      tagName
+    }
+    notes
+  }
+}
+    `;
+
+/**
+ * __useReceiptQuery__
+ *
+ * To run a query within a React component, call `useReceiptQuery` and pass it any options that fit your needs.
+ * When your component renders, `useReceiptQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useReceiptQuery({
+ *   variables: {
+ *      receiptId: // value for 'receiptId'
+ *   },
+ * });
+ */
+export function useReceiptQuery(baseOptions: Apollo.QueryHookOptions<ReceiptQuery, ReceiptQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ReceiptQuery, ReceiptQueryVariables>(ReceiptDocument, options);
+      }
+export function useReceiptLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReceiptQuery, ReceiptQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ReceiptQuery, ReceiptQueryVariables>(ReceiptDocument, options);
+        }
+export type ReceiptQueryHookResult = ReturnType<typeof useReceiptQuery>;
+export type ReceiptLazyQueryHookResult = ReturnType<typeof useReceiptLazyQuery>;
+export type ReceiptQueryResult = Apollo.QueryResult<ReceiptQuery, ReceiptQueryVariables>;
 export type CreateReceiptKeySpecifier = ('receipt' | CreateReceiptKeySpecifier)[];
 export type CreateReceiptFieldPolicy = {
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>
