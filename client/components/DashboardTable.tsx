@@ -184,7 +184,11 @@ export default function ReceiptsTable() {
                   <Chip
                     variant="outlined"
                     label={tag}
-                    sx={{ borderColor: `${tag}`, borderWidth: "2px" }}
+                    sx={{
+                      borderColor:
+                        theme.palette.mode === "dark" ? "white" : "black",
+                      borderWidth: "2px",
+                    }}
                   />
                 </Grid>
               );

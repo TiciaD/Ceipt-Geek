@@ -23,7 +23,6 @@ function queryMonthExpenseBreakdownData(
         dateLte: formattedLastDayOfMonth,
       },
       onCompleted: (data) => {
-        console.log("month data loaded");
         if (data.filteredReceipts?.edges) {
           const expenseData = data.filteredReceipts.edges.map(
             (edge) => edge?.node
@@ -38,7 +37,6 @@ function queryMonthExpenseBreakdownData(
         }
       },
       onError: (error) => {
-        console.log("inside error");
         setMonthLoading(false);
       },
       fetchPolicy: "cache-and-network",
@@ -103,7 +101,6 @@ function queryYearExpenseBreakdownData(
         dateLte: formattedLastDayOfYear,
       },
       onCompleted: (data) => {
-        console.log("year data loaded");
         if (data.filteredReceipts?.edges) {
           const expenseData = data.filteredReceipts.edges.map(
             (edge) => edge?.node

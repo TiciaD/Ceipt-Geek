@@ -31,8 +31,9 @@ function GraphCarousel() {
         </Box>
       ) : (
         <Carousel
-          stopAutoPlayOnHover={true}
-          interval={8000}
+          // stopAutoPlayOnHover={true}
+          // interval={8000}
+          autoPlay={false}
           swipe={true}
           sx={{ my: 5 }}
           fullHeightHover={false}
@@ -52,9 +53,9 @@ function GraphCarousel() {
                 marginBottom="25px"
                 fontWeight="bold"
               >
-                This Month's Expense Breakdown
+                This Year's Expense Breakdown
               </Typography>
-              <DoughnutGraph receiptData={monthData} />
+              <DoughnutGraph receiptData={yearData} />
             </Box>,
             <Box key={1}>
               <Typography
@@ -63,9 +64,9 @@ function GraphCarousel() {
                 marginBottom="25px"
                 fontWeight="bold"
               >
-                This Year's Expense Breakdown
+                This Month's Expense Breakdown
               </Typography>
-              <DoughnutGraph receiptData={yearData} />
+              <DoughnutGraph receiptData={monthData} />
             </Box>,
           ]}
         </Carousel>

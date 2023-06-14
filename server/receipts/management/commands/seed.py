@@ -89,7 +89,7 @@ def create_receipt():
     store_names = ['Walmart', 'Target', 'Whole Foods', 'Costco', 'Giant Tiger',
                    'Laser Tag', 'Volvo', 'Petco', 'Chapters', 'Babies R Us', 'Netflix']
     expense_options = EXPENSE_OPTIONS
-    start_date = datetime(2022, 1, 1)
+    start_date = datetime(2022, 12, 1)
 
     # Get the three test users
     users = User.objects.filter(
@@ -97,7 +97,7 @@ def create_receipt():
 
     # Generate random data
     store_name = random.choice(store_names)
-    date = start_date + timedelta(days=random.randint(0, 500))
+    date = start_date + timedelta(days=random.randint(0, 365))
     expense = random.choice(expense_options)[0]
     note = random.choice(notes)
     user = random.choice(users)
