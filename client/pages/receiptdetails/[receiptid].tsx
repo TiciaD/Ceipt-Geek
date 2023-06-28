@@ -13,6 +13,7 @@ import { expenseOptions } from '../../utils/choices'
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import axios from 'axios';
+import expenseMap from "../../constants/expenseMap";
 
 
 
@@ -23,13 +24,15 @@ export default function ReceiptDetails(){
         variables: {
             receiptId: receiptid ? String(receiptid) : ''
         },
-        onCompleted: (data) => {
-            if(data.receipt){
-                setEditedReceipt(data.receipt as unknown as ReceiptInput) 
-            }
-            console.log(data.receipt)
-        }
+        // onCompleted: (data) => {
+        //     if(data.receipt){
+        //         setEditedReceipt(data.receipt as unknown as ReceiptInput) 
+        //     }
+        //     console.log("RECEIPT",data.receipt)
+        // },
+        fetchPolicy: "cache-and-network"
     });
+    console.log(data)
     const [updateReceiptMutation] = useUpdateReceiptMutation();
     const [isImageModalOpen, setImageModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -43,7 +46,7 @@ export default function ReceiptDetails(){
         tags: data?.receipt?.tags.map(tag => tag.tagName) || [], 
         receiptImage: data?.receipt?.receiptImage,
     });
-    console.log("state",editedReceipt)
+    const [imageUpload, setImageUpload] = useState<File | null>(null)
     const [imageFile, setImageFile] = useState<File | null>(null);
     console.log('image',imageFile)
 
@@ -58,7 +61,7 @@ export default function ReceiptDetails(){
             setEditedReceipt((prevState) => ({
             ...prevState,
             storeName: data?.receipt?.storeName || '',
-            expense: data?.receipt?.expense || 'FOOD',
+            expense: data?.receipt?.expense.toLowerCase() || '',
             date: data?.receipt?.date,
             cost: data?.receipt?.cost,
             tax: data?.receipt?.tax,
@@ -74,7 +77,7 @@ export default function ReceiptDetails(){
     };
 
     const handleSubmit = () => {
-        try {
+
         const receiptInput = {
             storeName: editedReceipt.storeName,
             expense: editedReceipt.expense,
@@ -83,44 +86,29 @@ export default function ReceiptDetails(){
             tax: editedReceipt.tax,
             notes: editedReceipt.notes,
             tags: editedReceipt.tags,
-            receiptImage: editedReceipt.receiptImage
-          };
-      
-          // Perform the file upload if an image file exist
-            // Call the mutation to update the receipt without the image file
-            console.log("receipt input",receiptInput)
-            updateReceiptMutation({
-              variables: {
-                receiptId: receiptid ? String(receiptid) : '',
-                receiptData: receiptInput
-              },
-            })
-            .then((response) => {
-              // Handle successful response
-              console.log("update",response);
-              setIsEditing(false); // Reset the state and exit edit mode
-      
-              // Update the state with the updated data
-              if (response?.data?.updateReceipt) {
-                const updatedReceipt = {
-                  ...editedReceipt,
-                  ...response.data.updateReceipt
-                };
-                console.log("updated receipt", updatedReceipt)
-                setEditedReceipt(updatedReceipt);
-                refetch(); // Refetch the data to get the updated receipt
-              }
-            })
-            .catch((error) => {
-              // Handle error
-              console.error(error);
-            });
-          
-        } catch (error) {
-          // Handle error
-          console.error(error);
-        }
-      };
+            receiptImage: imageUpload,
+        };
+
+        console.log("receipt input", receiptInput);
+        updateReceiptMutation({
+        variables: {
+        receiptId: receiptid ? String(receiptid) : "",
+        receiptData: receiptInput,
+        },
+        onCompleted: (response) => {
+        // Handle successful response
+        console.log("update", response);
+        setIsEditing(false); // Reset the state and exit edit mode
+        refetch()
+        },
+        onError: (error) => {
+        // Handle error
+            console.error("ERROR!!", error);
+        },
+    });
+    setImageUpload(null)
+};
+
 
     // console.log('Data', data)
     
@@ -158,7 +146,7 @@ export default function ReceiptDetails(){
                                 <input type="file" onChange={(e) => {
                                     const file = e.target.files && e.target.files[0];
                                     if (file) {
-                                        setEditedReceipt({ ...editedReceipt, receiptImage: file });
+                                        setImageUpload(file);
                                     }
                                 }} />
                                 <p style={{marginBottom: 1, marginTop: -4}}>Created: {data?.receipt?.date} </p>
@@ -170,7 +158,7 @@ export default function ReceiptDetails(){
                             {/* Use autocomplete component */}
                             <Autocomplete
                                 options={expenseOptions}
-                                value={editedReceipt.expense ? { value: editedReceipt.expense, label: editedReceipt.expense } : null}
+                                value={editedReceipt.expense ? { value: editedReceipt.expense.toLowerCase(), label: editedReceipt.expense.toLowerCase() } : null}
                                 onChange={(_event, newValue) => {
                                     const selectedExpense = newValue ? newValue : null;
                                     setEditedReceipt({ ...editedReceipt, expense: (selectedExpense && selectedExpense.value) || '' });

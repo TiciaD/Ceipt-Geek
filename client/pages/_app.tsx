@@ -11,6 +11,7 @@ import {
   InMemoryCache,
   createHttpLink,
 } from "@apollo/client";
+import { createUploadLink } from "apollo-upload-client"
 import { setContext } from "@apollo/client/link/context";
 import Layout from "../components/Layout";
 
@@ -95,7 +96,7 @@ const darkTheme = createTheme({
 
 type Theme = "light" | "dark";
 
-const httpLink = createHttpLink({
+const httpLink = createUploadLink({
   uri: process.env.BACKEND_URL || "http://localhost:8000/graphql/",
   credentials: "include",
 });
