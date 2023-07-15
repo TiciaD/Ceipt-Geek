@@ -38,9 +38,11 @@ export default function queryReceiptData(
         }
       },
       onError: (error) => {
-        console.log(error);
-        logout();
-        router.push("/login");
+        if (!error.message.startsWith("No receipts found")) {
+          logout();
+          router.push("/login");
+        }
+        setLoading(false);
       },
       fetchPolicy: "cache-and-network",
     });
@@ -71,9 +73,11 @@ export default function queryReceiptData(
           }
         },
         onError: (error) => {
-          console.log(error);
-          logout();
-          router.push("/login");
+          if (!error.message.startsWith("No receipts found")) {
+            logout();
+            router.push("/login");
+          }
+          setLoading(false);
         },
         fetchPolicy: "cache-and-network",
       });
