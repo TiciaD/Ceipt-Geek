@@ -12,7 +12,6 @@ import {
 import {
   Alert,
   Box,
-  Button,
   Chip,
   Grid,
   LinearProgress,
@@ -82,25 +81,6 @@ export default function ReceiptsTable() {
   }
 
   const columns: GridColDef[] = [
-    // {
-    //   field: "Open Receipt Button",
-    //   headerName: "",
-    //   width: 90,
-    //   sortable: false,
-    //   filterable: false,
-    //   disableColumnMenu: true,
-    //   renderCell: (params) => (
-    //     <Button
-    //       variant="outlined"
-    //       size="small"
-    //       style={{ margin: "auto" }}
-    //       tabIndex={params.hasFocus ? 0 : -1}
-    //       onClick={() => console.log(params.row.id)}
-    //     >
-    //       open
-    //     </Button>
-    //   ),
-    // },
     {
       field: "date",
       headerName: "Date",
@@ -125,10 +105,15 @@ export default function ReceiptsTable() {
       },
     },
     {
-      field: "cost",
-      headerName: "Cost",
+      field: "subtotal",
+      headerName: "Subtotal",
       type: "number",
       width: 100,
+      valueGetter: (params) => {
+        const total = params.row.cost
+        const tax = params.row.tax
+        return total - tax;
+      },
       valueFormatter: (params: GridValueFormatterParams<number>) => {
         if (params.value == null) {
           return "";
@@ -141,17 +126,23 @@ export default function ReceiptsTable() {
       headerName: "Tax",
       type: "number",
       width: 100,
-      valueGetter: (params) => {
-        if (!params.value) {
-          return params.value;
-        }
-        return params.value * 100;
-      },
       valueFormatter: (params: GridValueFormatterParams<number>) => {
         if (params.value == null) {
           return "";
         }
-        return `${params.value.toLocaleString()}%`;
+        return `$${params.value.toFixed(2).toLocaleString()}`;
+      },
+    },
+    {
+      field: "cost",
+      headerName: "Total Cost",
+      type: "number",
+      width: 100,
+      valueFormatter: (params: GridValueFormatterParams<number>) => {
+        if (params.value == null) {
+          return "";
+        }
+        return `$${params.value.toFixed(2).toLocaleString()}`;
       },
     },
     {
@@ -205,16 +196,10 @@ export default function ReceiptsTable() {
       cellClassName: "actions",
       getActions: (params) => {
         return [
-          //   icon={<EditIcon />}
-          //   label="Edit"
-          //   className="textPrimary"
-          //   onClick={() => console.log("edit", params.row.id)}
-          //   color="primary"
-          // />,
           <GridActionsCellItem
             icon={<ReceiptLongOutlinedIcon />}
-            label="Open Receipt"
-            title="Open Receipt"
+            label="View Receipt"
+            title="View Receipt"
             onClick={() => router.push(`/receiptdetails/${params.row.id}`)}
             color="primary"
           />,

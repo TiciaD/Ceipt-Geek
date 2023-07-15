@@ -32,7 +32,7 @@ User = get_user_model()
 # For example, --num_receipts=10 will seed the database with 10 receipts.
 # By default --num_receipts=20.
 
-""" Clear all data from the database then seeds data """
+""" **DEFAULT** Clear all data from the database then seeds data  """
 MODE_REFRESH = 'refresh'
 
 """ Clear all data from the database without seeding data """
@@ -98,11 +98,11 @@ def create_receipt():
     # Generate random data
     store_name = random.choice(store_names)
     date = start_date + timedelta(days=random.randint(0, 365))
-    expense = random.choice(expense_options)[0]
+    expense = random.choice(expense_options)[0] 
     note = random.choice(notes)
     user = random.choice(users)
-    cost = Decimal(str(random.uniform(0, 100))).quantize(Decimal('0.01'))
-    tax = Decimal(str(random.uniform(0, 0.99))).quantize(Decimal('0.01'))
+    cost = Decimal(str(random.uniform(0, 1000))).quantize(Decimal('0.01'))
+    tax = Decimal(str(random.uniform(0, 100))).quantize(Decimal('0.01'))
 
     # Get random receipt image
     if os.path.exists('test_images'):

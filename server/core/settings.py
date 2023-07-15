@@ -147,7 +147,7 @@ GRAPHQL_JWT = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
 }
 
-SESSION_COOKIE_AGE = 1800
+SESSION_COOKIE_AGE = 10800
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
