@@ -61,3 +61,16 @@ export const TOTAL_EXPENDITURE_BY_DATE = gql`
     totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
   }
 `;
+
+export const USER_QUERY = gql`
+  query User {
+    user {
+      id
+      username
+      email
+      dateJoined
+      receiptCount
+      tagsCount
+    }
+  }
+`;

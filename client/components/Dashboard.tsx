@@ -81,7 +81,6 @@ export default function Dashboard() {
               </Typography>
             )}
           </Box>
-          {/* TODO: Add Doughnut Chart from Chart.js  */}
         </CardContent>
       </Card>
       <GraphCarousel />

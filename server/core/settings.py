@@ -89,11 +89,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Cookie settings
-
-SESSION_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SECURE = True
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -140,14 +135,18 @@ GRAPHENE = {
     ],
 }
 
+# Cookie settings
+
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_AGE = 10800
+
 # Authentication
 
 GRAPHQL_JWT = {
     'JWT_SECRET_KEY': os.getenv('JWT_SECRET_KEY'),
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
 }
-
-SESSION_COOKIE_AGE = 10800
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
