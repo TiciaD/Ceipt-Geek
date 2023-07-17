@@ -3,14 +3,15 @@ import {
     Card, 
     CardContent, 
     Typography,
-    Button
+    Button,
+    Chip
 } from "@mui/material";
 import { useRouter } from 'next/router';
-import { useReceiptQuery, useUpdateReceiptMutation, ReceiptType, ReceiptInput } from "../../graphql/generated/graphql";
+import { useReceiptQuery, useUpdateReceiptMutation, ReceiptInput, useGetAllUsersTagsQuery } from "../../graphql/generated/graphql";
 import { DialogContent, Dialog } from '@mui/material';
 import { useState, useEffect } from "react";
 import { expenseOptions } from '../../utils/choices'
-import Autocomplete from '@mui/material/Autocomplete';
+import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import axios from 'axios';
 import expenseMap from "../../constants/expenseMap";
@@ -24,15 +25,18 @@ export default function ReceiptDetails(){
         variables: {
             receiptId: receiptid ? String(receiptid) : ''
         },
-        // onCompleted: (data) => {
-        //     if(data.receipt){
-        //         setEditedReceipt(data.receipt as unknown as ReceiptInput) 
-        //     }
-        //     console.log("RECEIPT",data.receipt)
-        // },
         fetchPolicy: "cache-and-network"
     });
-    console.log(data)
+    useGetAllUsersTagsQuery({
+        onCompleted: (data) => {
+
+            const tagNames = data?.allUsersTags?.map(tag => tag?.tagName || "") || []
+            
+                setTags(tagNames)
+        },
+        fetchPolicy: "cache-and-network"
+    })
+    const filter = createFilterOptions<string>();
     const [updateReceiptMutation] = useUpdateReceiptMutation();
     const [isImageModalOpen, setImageModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -46,31 +50,8 @@ export default function ReceiptDetails(){
         tags: data?.receipt?.tags.map(tag => tag.tagName) || [], 
         receiptImage: data?.receipt?.receiptImage,
     });
+    const [tags, setTags] = useState<string[]>([]);
     const [imageUpload, setImageUpload] = useState<File | null>(null)
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    console.log('image',imageFile)
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        setImageFile(file || null);
-    };
-
-
-    useEffect(() => {
-        if (data?.receipt) {
-            setEditedReceipt((prevState) => ({
-            ...prevState,
-            storeName: data?.receipt?.storeName || '',
-            expense: data?.receipt?.expense.toLowerCase() || '',
-            date: data?.receipt?.date,
-            cost: data?.receipt?.cost,
-            tax: data?.receipt?.tax,
-            notes: data?.receipt?.notes || '',
-            tags: data?.receipt?.tags.map((tag) => tag.tagName) || [],
-            receiptImage: data?.receipt?.receiptImage,
-            }));
-        }
-    }, [data]);
 
     const handleEdit = () => {
         setIsEditing(true)
@@ -89,28 +70,22 @@ export default function ReceiptDetails(){
             receiptImage: imageUpload,
         };
 
-        console.log("receipt input", receiptInput);
         updateReceiptMutation({
         variables: {
         receiptId: receiptid ? String(receiptid) : "",
         receiptData: receiptInput,
         },
         onCompleted: (response) => {
-        // Handle successful response
-        console.log("update", response);
-        setIsEditing(false); // Reset the state and exit edit mode
-        refetch()
+            setIsEditing(false); 
+            refetch()
         },
         onError: (error) => {
-        // Handle error
-            console.error("ERROR!!", error);
+            console.error("Mutation error:", error);
         },
     });
     setImageUpload(null)
 };
 
-
-    // console.log('Data', data)
     
     if (loading) {
         // Render a loading state if the query is still in progress
@@ -124,7 +99,7 @@ export default function ReceiptDetails(){
     return(
         <>
             {isEditing ? (
-                <Card sx={{ width: "45rem", height:"31rem", padding: "1rem", marginTop: "3rem" }}>
+                <Card sx={{ width: "45rem", height: "auto", padding: "1rem", marginTop: "3rem" }}>
                     <Typography variant="h4" sx={{ fontWeight: "bold", padding: "1rem"}}>
                         <TextField  variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, storeName: e.target.value })} type="text" name="storeName" value={editedReceipt.storeName} style={{fontSize: "1.2rem", color:"white", borderRight:"none", backgroundColor: 'transparent'}} />
                     </Typography>       
@@ -158,7 +133,8 @@ export default function ReceiptDetails(){
                             {/* Use autocomplete component */}
                             <Autocomplete
                                 options={expenseOptions}
-                                value={editedReceipt.expense ? { value: editedReceipt.expense.toLowerCase(), label: editedReceipt.expense.toLowerCase() } : null}
+                                defaultValue={{value:data?.receipt?.expense!, label:expenseMap[data?.receipt?.expense!].displayString}}
+                                disableClearable
                                 onChange={(_event, newValue) => {
                                     const selectedExpense = newValue ? newValue : null;
                                     setEditedReceipt({ ...editedReceipt, expense: (selectedExpense && selectedExpense.value) || '' });
@@ -178,11 +154,12 @@ export default function ReceiptDetails(){
                             <Autocomplete
                                 freeSolo
                                 multiple
-                                options={[]}
+                                autoHighlight
+                                handleHomeEndKeys
+                                clearOnBlur
+                                options={tags?.sort((a, b) => a.localeCompare(b))}
+                                sx={{ width: 300, mt:2 }}
                                 value={editedReceipt.tags || undefined}
-                                onChange={(event, newValue) => {
-                                    setEditedReceipt({ ...editedReceipt, tags: newValue });
-                                }}
                                 renderInput={(params) => (
                                     <TextField
                                     {...params}
@@ -190,14 +167,60 @@ export default function ReceiptDetails(){
                                     style={{ fontSize: '1.2rem', color: 'white', borderRight: 'none', backgroundColor: 'transparent' }}
                                     />
                                 )}
-                                />
+                                renderTags={(value, getTagProps) =>
+                                    value.map((option, index: number) => {
+                                        if (option) {
+                                            const label = option.startsWith("Add ")
+                                                ? option.substring(4)
+                                                : option;
+                                            return (
+                                                <Chip
+                                                variant="outlined"
+                                                label={label}
+                                                {...getTagProps({ index })}
+                                                />
+                                            );
+                                        }
+                                        return null; // Handle null option
+                                    })
+                                }
+                                filterOptions={(options, params) => {
+                                    const filteredOptions = options.filter((option): option is string => option !== null);
+                                    
+                                    const filtered = filter(filteredOptions, params);
+
+                                    const { inputValue } = params;
+                                    const isExisting = options.some((option) => inputValue === option);
+                        
+                                    if (inputValue !== "" && !isExisting) {
+                                        filtered.push(`Add ${inputValue}`);
+                                    }
+                        
+                                    return filtered;
+                                }}
+                                onChange={(event, newValues) => {                                    
+                                    const updatedValues = newValues.map((value) =>
+                                    value?.startsWith("Add ") ? value?.substring(4) : value
+                                    );
+                                    setEditedReceipt({ ...editedReceipt, tags: updatedValues });
+                                    const currentValue = newValues.slice(-1)[0];
+                                    if (currentValue && currentValue.startsWith("Add ")) {
+                                        const temporaryTag = currentValue.substring(4);
+                                        if (temporaryTag) {
+                                            tags.push(temporaryTag);
+                                        }
+                                    } else if (currentValue && !tags.includes(currentValue)) {
+                                        tags.push(currentValue);
+                                    }
+                                }}
+                            />
                                 <p style={{fontSize: "1.5rem"}}>Notes:<TextField variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, notes: e.target.value })} type="text" name="notes" value={editedReceipt.notes || ''}/></p>
                             <Button sx={{height:"35px", width:"150px", mb: 2, ml:5}} variant="contained" onClick={handleSubmit}>Save Changes</Button>
                         </CardContent>
                     </Box>
                 </Card>
                 ):(
-                <Card sx={{ width: "45rem", height:"31rem", padding: "1rem", marginTop: "3rem" }}>
+                <Card sx={{ width: "45rem", height: "auto", padding: "1rem", marginTop: "3rem" }}>
                     <Typography variant="h4" sx={{ fontWeight: "bold", padding: "1rem"}}>
                             {data?.receipt?.storeName}
                     </Typography>       
@@ -222,7 +245,7 @@ export default function ReceiptDetails(){
                             </Box>
                         </CardContent>
                         <CardContent>
-                            <p style={{fontSize: "1.2rem"}}>Category: {data?.receipt?.expense}</p>
+                            <p style={{fontSize: "1.2rem"}}>Category: {expenseMap[data?.receipt?.expense!].displayString}</p>
                             <p style={{fontSize: "1.5rem"}}>Total: ${data?.receipt?.cost}</p>
                             <p style={{fontSize: "1.5rem"}}>Tax: ${data?.receipt?.tax}</p>
                             <p style={{fontSize: "1.5rem"}}>Tags: {data?.receipt?.tags.map(tag => tag.tagName).join(', ')}</p>

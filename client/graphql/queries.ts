@@ -61,3 +61,12 @@ export const GET_RECEIPT = gql`
     }
   }
 `;
+
+export const GET_USERS_TAGS = gql`
+  query GetAllUsersTags($sortBy: [String]) {
+    allUsersTags(sortBy: $sortBy) {
+      tagName
+      id
+    }
+  }
+`;

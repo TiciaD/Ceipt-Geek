@@ -528,6 +528,13 @@ export type ReceiptQueryVariables = Exact<{
 
 export type ReceiptQuery = { __typename?: 'Query', receipt?: { __typename?: 'ReceiptType', storeName: string, expense: ReceiptsReceiptExpenseChoices, cost?: any | null, tax?: any | null, date: any, receiptImage?: string | null, notes?: string | null, tags: Array<{ __typename?: 'TagType', tagName: string }> } | null };
 
+export type GetAllUsersTagsQueryVariables = Exact<{
+  sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>> | InputMaybe<Scalars['String']>>;
+}>;
+
+
+export type GetAllUsersTagsQuery = { __typename?: 'Query', allUsersTags?: Array<{ __typename?: 'TagType', tagName: string, id: string } | null> | null };
+
 
 export const CreateAccountDocument = gql`
     mutation CreateAccount($email: String!, $password: String!, $username: String!) {
@@ -962,6 +969,42 @@ export function useReceiptLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Re
 export type ReceiptQueryHookResult = ReturnType<typeof useReceiptQuery>;
 export type ReceiptLazyQueryHookResult = ReturnType<typeof useReceiptLazyQuery>;
 export type ReceiptQueryResult = Apollo.QueryResult<ReceiptQuery, ReceiptQueryVariables>;
+export const GetAllUsersTagsDocument = gql`
+    query GetAllUsersTags($sortBy: [String]) {
+  allUsersTags(sortBy: $sortBy) {
+    tagName
+    id
+  }
+}
+    `;
+
+/**
+ * __useGetAllUsersTagsQuery__
+ *
+ * To run a query within a React component, call `useGetAllUsersTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAllUsersTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAllUsersTagsQuery({
+ *   variables: {
+ *      sortBy: // value for 'sortBy'
+ *   },
+ * });
+ */
+export function useGetAllUsersTagsQuery(baseOptions?: Apollo.QueryHookOptions<GetAllUsersTagsQuery, GetAllUsersTagsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllUsersTagsQuery, GetAllUsersTagsQueryVariables>(GetAllUsersTagsDocument, options);
+      }
+export function useGetAllUsersTagsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllUsersTagsQuery, GetAllUsersTagsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllUsersTagsQuery, GetAllUsersTagsQueryVariables>(GetAllUsersTagsDocument, options);
+        }
+export type GetAllUsersTagsQueryHookResult = ReturnType<typeof useGetAllUsersTagsQuery>;
+export type GetAllUsersTagsLazyQueryHookResult = ReturnType<typeof useGetAllUsersTagsLazyQuery>;
+export type GetAllUsersTagsQueryResult = Apollo.QueryResult<GetAllUsersTagsQuery, GetAllUsersTagsQueryVariables>;
 export type CreateReceiptKeySpecifier = ('receipt' | CreateReceiptKeySpecifier)[];
 export type CreateReceiptFieldPolicy = {
 	receipt?: FieldPolicy<any> | FieldReadFunction<any>
