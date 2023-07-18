@@ -8,12 +8,10 @@ import {
 } from "@mui/material";
 import { useRouter } from 'next/router';
 import { useReceiptQuery, useUpdateReceiptMutation, ReceiptInput, useGetAllUsersTagsQuery } from "../../graphql/generated/graphql";
-import { DialogContent, Dialog } from '@mui/material';
 import { useState, useEffect } from "react";
 import { expenseOptions } from '../../utils/choices'
 import Autocomplete, { createFilterOptions } from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
-import axios from 'axios';
 import expenseMap from "../../constants/expenseMap";
 
 
@@ -36,6 +34,7 @@ export default function ReceiptDetails(){
         },
         fetchPolicy: "cache-and-network"
     })
+    
     const filter = createFilterOptions<string>();
     const [updateReceiptMutation] = useUpdateReceiptMutation();
     const [isImageModalOpen, setImageModalOpen] = useState(false);
@@ -56,9 +55,23 @@ export default function ReceiptDetails(){
     const handleEdit = () => {
         setIsEditing(true)
     };
+    useEffect(() => {
+        if (data?.receipt) {
+            setEditedReceipt({
+                storeName: data?.receipt?.storeName,
+                expense: data?.receipt?.expense,
+                date: data?.receipt?.date,
+                cost: data?.receipt?.cost,
+                tax: data?.receipt?.tax,
+                notes: data?.receipt?.notes,
+                tags: data?.receipt?.tags.map(tag => tag.tagName), 
+                receiptImage: data?.receipt?.receiptImage,
+            });
+        }
+    }, [data]);
 
     const handleSubmit = () => {
-
+        
         const receiptInput = {
             storeName: editedReceipt.storeName,
             expense: editedReceipt.expense,
@@ -69,7 +82,6 @@ export default function ReceiptDetails(){
             tags: editedReceipt.tags,
             receiptImage: imageUpload,
         };
-
         updateReceiptMutation({
         variables: {
         receiptId: receiptid ? String(receiptid) : "",
@@ -101,7 +113,7 @@ export default function ReceiptDetails(){
             {isEditing ? (
                 <Card sx={{ width: "45rem", height: "auto", padding: "1rem", marginTop: "3rem" }}>
                     <Typography variant="h4" sx={{ fontWeight: "bold", padding: "1rem"}}>
-                        <TextField  variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, storeName: e.target.value })} type="text" name="storeName" value={editedReceipt.storeName} style={{fontSize: "1.2rem", color:"white", borderRight:"none", backgroundColor: 'transparent'}} />
+                        <TextField  variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, storeName: e.target.value })} type="text" name="storeName" value={data?.receipt?.storeName} style={{fontSize: "1.2rem", color:"white", borderRight:"none", backgroundColor: 'transparent'}} />
                     </Typography>       
                     <Box sx={{display: "flex",marginTop: -2}}>
                         <CardContent sx={{marginRight:10}}>
@@ -130,7 +142,6 @@ export default function ReceiptDetails(){
                             </Box>
                         </CardContent>
                         <CardContent>
-                            {/* Use autocomplete component */}
                             <Autocomplete
                                 options={expenseOptions}
                                 defaultValue={{value:data?.receipt?.expense!, label:expenseMap[data?.receipt?.expense!].displayString}}
@@ -148,9 +159,8 @@ export default function ReceiptDetails(){
                                     />
                                 )}
                             />
-                            <p style={{fontSize: "1.5rem"}}>Total:<TextField variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, cost: e.target.value })} type="text" name="cost" value={editedReceipt.cost} style={{fontSize: "1.2rem", color:"white", borderRight:"none", backgroundColor: 'transparent'}} /></p>
-                            <p style={{fontSize: "1.5rem"}}>Tax:<TextField variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, tax: e.target.value })} type="text" name="tax" value={editedReceipt.tax} style={{fontSize: "1.2rem", color:"white", borderRight:"none", backgroundColor: 'transparent'}} /></p>
-                            {/* Use autocomplete component */}
+                            <p style={{fontSize: "1.5rem"}}>Total:<TextField variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, cost: e.target.value })} type="text" name="cost" value={data?.receipt?.cost} style={{fontSize: "1.2rem", color:"white", borderRight:"none", backgroundColor: 'transparent'}} /></p>
+                            <p style={{fontSize: "1.5rem"}}>Tax:<TextField variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, tax: e.target.value })} type="text" name="tax" value={data?.receipt?.tax} style={{fontSize: "1.2rem", color:"white", borderRight:"none", backgroundColor: 'transparent'}} /></p>
                             <Autocomplete
                                 freeSolo
                                 multiple
@@ -159,7 +169,7 @@ export default function ReceiptDetails(){
                                 clearOnBlur
                                 options={tags?.sort((a, b) => a.localeCompare(b))}
                                 sx={{ width: 300, mt:2 }}
-                                value={editedReceipt.tags || undefined}
+                                value={editedReceipt.tags || []}
                                 renderInput={(params) => (
                                     <TextField
                                     {...params}
@@ -214,7 +224,7 @@ export default function ReceiptDetails(){
                                     }
                                 }}
                             />
-                                <p style={{fontSize: "1.5rem"}}>Notes:<TextField variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, notes: e.target.value })} type="text" name="notes" value={editedReceipt.notes || ''}/></p>
+                                <p style={{fontSize: "1.5rem"}}>Notes:<TextField variant="standard" onChange={(e) => setEditedReceipt({ ...editedReceipt, notes: e.target.value })} type="text" name="notes" value={data?.receipt?.notes || ''}/></p>
                             <Button sx={{height:"35px", width:"150px", mb: 2, ml:5}} variant="contained" onClick={handleSubmit}>Save Changes</Button>
                         </CardContent>
                     </Box>
