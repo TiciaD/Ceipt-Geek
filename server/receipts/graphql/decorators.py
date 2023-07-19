@@ -78,6 +78,7 @@ def is_owner_or_superuser(model):
                     raise GraphQLError(
                         'You do not have permission to perform this action'
                     )
+                
             if model == 'tag':
                 tag_id = kwargs.get('tag_id')
 

@@ -151,14 +151,33 @@ export type MutationUpdateUserArgs = {
   username?: InputMaybe<Scalars['String']>;
 };
 
+/** An object with an ID */
+export type Node = {
+  /** The ID of the object */
+  id: Scalars['ID'];
+};
+
+/** The Relay compliant `PageInfo` type, containing data necessary to paginate this connection. */
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  /** When paginating forwards, the cursor to continue. */
+  endCursor?: Maybe<Scalars['String']>;
+  /** When paginating forwards, are there more items? */
+  hasNextPage: Scalars['Boolean'];
+  /** When paginating backwards, are there more items? */
+  hasPreviousPage: Scalars['Boolean'];
+  /** When paginating backwards, the cursor to continue. */
+  startCursor?: Maybe<Scalars['String']>;
+};
+
 export type Query = {
   __typename?: 'Query';
-  allReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
-  allReceiptsByUser?: Maybe<Array<Maybe<ReceiptType>>>;
+  allReceipts?: Maybe<ReceiptNodeConnection>;
+  allReceiptsByUser?: Maybe<ReceiptNodeConnection>;
   allTags?: Maybe<Array<Maybe<TagType>>>;
   allUsers?: Maybe<Array<Maybe<UserType>>>;
   allUsersTags?: Maybe<Array<Maybe<TagType>>>;
-  filteredReceipts?: Maybe<Array<Maybe<ReceiptType>>>;
+  filteredReceipts?: Maybe<ReceiptNodeConnection>;
   getUser?: Maybe<UserType>;
   receipt?: Maybe<ReceiptType>;
   tag?: Maybe<TagType>;
@@ -168,13 +187,26 @@ export type Query = {
 
 
 export type QueryAllReceiptsArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
   sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+  user?: InputMaybe<Scalars['ID']>;
   userId?: InputMaybe<Scalars['ID']>;
 };
 
 
 export type QueryAllReceiptsByUserArgs = {
+
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
   sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 
@@ -195,18 +227,24 @@ export type QueryAllUsersTagsArgs = {
 
 
 export type QueryFilteredReceiptsArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
   costGte?: InputMaybe<Scalars['DecimalType']>;
   costLte?: InputMaybe<Scalars['DecimalType']>;
   dateGte?: InputMaybe<Scalars['Date']>;
   dateLte?: InputMaybe<Scalars['Date']>;
   expense?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
   notes?: InputMaybe<Scalars['String']>;
+  offset?: InputMaybe<Scalars['Int']>;
   sortBy?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   storeName?: InputMaybe<Scalars['String']>;
   tagsContainsAll?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   tagsContainsAny?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   taxGte?: InputMaybe<Scalars['DecimalType']>;
   taxLte?: InputMaybe<Scalars['DecimalType']>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 
@@ -217,7 +255,7 @@ export type QueryGetUserArgs = {
 
 
 export type QueryReceiptArgs = {
-  receiptId: Scalars['ID'];
+  receiptId: Scalars['String'];
 };
 
 
@@ -240,6 +278,40 @@ export type ReceiptInput = {
   storeName: Scalars['String'];
   tags?: InputMaybe<Array<InputMaybe<Scalars['String']>>>;
   tax: Scalars['DecimalType'];
+};
+
+export type ReceiptNode = Node & {
+  __typename?: 'ReceiptNode';
+  cost?: Maybe<Scalars['DecimalType']>;
+  date: Scalars['Date'];
+  expense: ReceiptsReceiptExpenseChoices;
+  id: Scalars['ID'];
+  notes?: Maybe<Scalars['String']>;
+  receiptImage?: Maybe<Scalars['String']>;
+  /** Relay ID */
+  relayId?: Maybe<Scalars['ID']>;
+  storeName: Scalars['String'];
+  tags: Array<TagType>;
+  tax?: Maybe<Scalars['DecimalType']>;
+  user: UserType;
+};
+
+export type ReceiptNodeConnection = {
+  __typename?: 'ReceiptNodeConnection';
+  /** Contains the nodes in this connection. */
+  edges: Array<Maybe<ReceiptNodeEdge>>;
+  /** Pagination data for this connection. */
+  pageInfo: PageInfo;
+  totalCount?: Maybe<Scalars['Int']>;
+};
+
+/** A Relay edge containing a `ReceiptNode` and its cursor. */
+export type ReceiptNodeEdge = {
+  __typename?: 'ReceiptNodeEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String'];
+  /** The item at the end of the edge */
+  node?: Maybe<ReceiptNode>;
 };
 
 export type ReceiptType = {
@@ -308,9 +380,19 @@ export type ReceiptsReceiptExpenseChoices =
 export type TagType = {
   __typename?: 'TagType';
   id: Scalars['ID'];
-  receiptSet: Array<ReceiptType>;
+  receiptSet: ReceiptNodeConnection;
   tagName: Scalars['String'];
-  user: ExtendedUserType;
+  user: UserType;
+};
+
+
+export type TagTypeReceiptSetArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 export type UpdateReceipt = {
@@ -342,10 +424,20 @@ export type UserType = {
   isSuperuser: Scalars['Boolean'];
   lastLogin?: Maybe<Scalars['DateTime']>;
   lastName: Scalars['String'];
-  receiptSet: Array<ReceiptType>;
+  receiptSet: ReceiptNodeConnection;
   tagSet: Array<TagType>;
   /** Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
   username: Scalars['String'];
+};
+
+
+export type UserTypeReceiptSetArgs = {
+  after?: InputMaybe<Scalars['String']>;
+  before?: InputMaybe<Scalars['String']>;
+  first?: InputMaybe<Scalars['Int']>;
+  last?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  user?: InputMaybe<Scalars['ID']>;
 };
 
 export type CreateAccountMutationVariables = Exact<{
@@ -365,10 +457,13 @@ export type AuthMutationVariables = Exact<{
 
 export type AuthMutation = { __typename?: 'Mutation', login?: { __typename?: 'LoginMutation', token?: string | null, success?: boolean | null } | null };
 
-export type AllReceiptsByUserQueryVariables = Exact<{ [key: string]: never; }>;
+export type AllReceiptsByUserQueryVariables = Exact<{
+  first: Scalars['Int'];
+  after?: InputMaybe<Scalars['String']>;
+}>;
 
 
-export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: Array<{ __typename?: 'ReceiptType', id: string, storeName: string, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, tags: Array<{ __typename?: 'TagType', id: string, tagName: string }> } | null> | null };
+export type AllReceiptsByUserQuery = { __typename?: 'Query', allReceiptsByUser?: { __typename?: 'ReceiptNodeConnection', totalCount?: number | null, pageInfo: { __typename?: 'PageInfo', startCursor?: string | null, endCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ReceiptNodeEdge', cursor: string, node?: { __typename?: 'ReceiptNode', id: string, storeName: string, tax?: any | null, cost?: any | null, date: any, expense: ReceiptsReceiptExpenseChoices, notes?: string | null, tags: Array<{ __typename?: 'TagType', tagName: string }> } | null } | null> } | null };
 
 export type TotalExpenditureByDateQueryVariables = Exact<{
   dateGte: Scalars['Date'];
@@ -377,6 +472,23 @@ export type TotalExpenditureByDateQueryVariables = Exact<{
 
 
 export type TotalExpenditureByDateQuery = { __typename?: 'Query', totalExpenditureByDate?: number | null };
+
+export type DeleteReceiptMutationVariables = Exact<{
+  receiptId: Scalars['ID'];
+}>;
+
+
+export type DeleteReceiptMutation = { __typename?: 'Mutation', deleteReceipt?: { __typename?: 'DeleteReceipt', success?: boolean | null } | null };
+
+export type ExpenseDataByDateQueryVariables = Exact<{
+  first: Scalars['Int'];
+  after?: InputMaybe<Scalars['String']>;
+  dateGte: Scalars['Date'];
+  dateLte: Scalars['Date'];
+}>;
+
+
+export type ExpenseDataByDateQuery = { __typename?: 'Query', filteredReceipts?: { __typename?: 'ReceiptNodeConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ReceiptNodeEdge', node?: { __typename?: 'ReceiptNode', expense: ReceiptsReceiptExpenseChoices, cost?: any | null } | null } | null> } | null };
 
 export type UserQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -490,16 +602,29 @@ export type AuthMutationHookResult = ReturnType<typeof useAuthMutation>;
 export type AuthMutationResult = Apollo.MutationResult<AuthMutation>;
 export type AuthMutationOptions = Apollo.BaseMutationOptions<AuthMutation, AuthMutationVariables>;
 export const AllReceiptsByUserDocument = gql`
-    query AllReceiptsByUser {
-  allReceiptsByUser {
-    id
-    storeName
-    cost
-    date
-    expense
-    tags {
-      id
-      tagName
+    query AllReceiptsByUser($first: Int!, $after: String) {
+  allReceiptsByUser(first: $first, after: $after) {
+    totalCount
+    pageInfo {
+      startCursor
+      endCursor
+      hasNextPage
+      hasPreviousPage
+    }
+    edges {
+      cursor
+      node {
+        id
+        storeName
+        tax
+        cost
+        date
+        expense
+        notes
+        tags {
+          tagName
+        }
+      }
     }
   }
 }
@@ -517,10 +642,12 @@ export const AllReceiptsByUserDocument = gql`
  * @example
  * const { data, loading, error } = useAllReceiptsByUserQuery({
  *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useAllReceiptsByUserQuery(baseOptions?: Apollo.QueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
+export function useAllReceiptsByUserQuery(baseOptions: Apollo.QueryHookOptions<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<AllReceiptsByUserQuery, AllReceiptsByUserQueryVariables>(AllReceiptsByUserDocument, options);
       }
@@ -565,6 +692,91 @@ export function useTotalExpenditureByDateLazyQuery(baseOptions?: Apollo.LazyQuer
 export type TotalExpenditureByDateQueryHookResult = ReturnType<typeof useTotalExpenditureByDateQuery>;
 export type TotalExpenditureByDateLazyQueryHookResult = ReturnType<typeof useTotalExpenditureByDateLazyQuery>;
 export type TotalExpenditureByDateQueryResult = Apollo.QueryResult<TotalExpenditureByDateQuery, TotalExpenditureByDateQueryVariables>;
+export const DeleteReceiptDocument = gql`
+    mutation DeleteReceipt($receiptId: ID!) {
+  deleteReceipt(receiptId: $receiptId) {
+    success
+  }
+}
+    `;
+export type DeleteReceiptMutationFn = Apollo.MutationFunction<DeleteReceiptMutation, DeleteReceiptMutationVariables>;
+
+/**
+ * __useDeleteReceiptMutation__
+ *
+ * To run a mutation, you first call `useDeleteReceiptMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteReceiptMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteReceiptMutation, { data, loading, error }] = useDeleteReceiptMutation({
+ *   variables: {
+ *      receiptId: // value for 'receiptId'
+ *   },
+ * });
+ */
+export function useDeleteReceiptMutation(baseOptions?: Apollo.MutationHookOptions<DeleteReceiptMutation, DeleteReceiptMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteReceiptMutation, DeleteReceiptMutationVariables>(DeleteReceiptDocument, options);
+      }
+export type DeleteReceiptMutationHookResult = ReturnType<typeof useDeleteReceiptMutation>;
+export type DeleteReceiptMutationResult = Apollo.MutationResult<DeleteReceiptMutation>;
+export type DeleteReceiptMutationOptions = Apollo.BaseMutationOptions<DeleteReceiptMutation, DeleteReceiptMutationVariables>;
+export const ExpenseDataByDateDocument = gql`
+    query ExpenseDataByDate($first: Int!, $after: String, $dateGte: Date!, $dateLte: Date!) {
+  filteredReceipts(
+    first: $first
+    after: $after
+    dateGte: $dateGte
+    dateLte: $dateLte
+  ) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      node {
+        expense
+        cost
+      }
+    }
+  }
+}
+    `;
+                                                         
+/**
+ * __useExpenseDataByDateQuery__
+ *
+ * To run a query within a React component, call `useExpenseDataByDateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useExpenseDataByDateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useExpenseDataByDateQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      dateGte: // value for 'dateGte'
+ *      dateLte: // value for 'dateLte'
+ *   },
+ * });
+ */
+export function useExpenseDataByDateQuery(baseOptions: Apollo.QueryHookOptions<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>(ExpenseDataByDateDocument, options);
+      }
+export function useExpenseDataByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>(ExpenseDataByDateDocument, options);
+        }
+export type ExpenseDataByDateQueryHookResult = ReturnType<typeof useExpenseDataByDateQuery>;
+export type ExpenseDataByDateLazyQueryHookResult = ReturnType<typeof useExpenseDataByDateLazyQuery>;
+export type ExpenseDataByDateQueryResult = Apollo.QueryResult<ExpenseDataByDateQuery, ExpenseDataByDateQueryVariables>;                          
 export const UserDocument = gql`
     query User {
   user {
@@ -809,6 +1021,19 @@ export type MutationFieldPolicy = {
 	updateTag?: FieldPolicy<any> | FieldReadFunction<any>,
 	updateUser?: FieldPolicy<any> | FieldReadFunction<any>
 };
+
+export type NodeKeySpecifier = ('id' | NodeKeySpecifier)[];
+export type NodeFieldPolicy = {
+	id?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type PageInfoKeySpecifier = ('endCursor' | 'hasNextPage' | 'hasPreviousPage' | 'startCursor' | PageInfoKeySpecifier)[];
+export type PageInfoFieldPolicy = {
+	endCursor?: FieldPolicy<any> | FieldReadFunction<any>,
+	hasNextPage?: FieldPolicy<any> | FieldReadFunction<any>,
+	hasPreviousPage?: FieldPolicy<any> | FieldReadFunction<any>,
+	startCursor?: FieldPolicy<any> | FieldReadFunction<any>
+};
+
 export type QueryKeySpecifier = ('allReceipts' | 'allReceiptsByUser' | 'allTags' | 'allUsers' | 'allUsersTags' | 'filteredReceipts' | 'getUser' | 'receipt' | 'tag' | 'totalExpenditureByDate' | 'user' | QueryKeySpecifier)[];
 export type QueryFieldPolicy = {
 	allReceipts?: FieldPolicy<any> | FieldReadFunction<any>,
@@ -822,6 +1047,31 @@ export type QueryFieldPolicy = {
 	tag?: FieldPolicy<any> | FieldReadFunction<any>,
 	totalExpenditureByDate?: FieldPolicy<any> | FieldReadFunction<any>,
 	user?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ReceiptNodeKeySpecifier = ('cost' | 'date' | 'expense' | 'id' | 'notes' | 'receiptImage' | 'relayId' | 'storeName' | 'tags' | 'tax' | 'user' | ReceiptNodeKeySpecifier)[];
+export type ReceiptNodeFieldPolicy = {
+	cost?: FieldPolicy<any> | FieldReadFunction<any>,
+	date?: FieldPolicy<any> | FieldReadFunction<any>,
+	expense?: FieldPolicy<any> | FieldReadFunction<any>,
+	id?: FieldPolicy<any> | FieldReadFunction<any>,
+	notes?: FieldPolicy<any> | FieldReadFunction<any>,
+	receiptImage?: FieldPolicy<any> | FieldReadFunction<any>,
+	relayId?: FieldPolicy<any> | FieldReadFunction<any>,
+	storeName?: FieldPolicy<any> | FieldReadFunction<any>,
+	tags?: FieldPolicy<any> | FieldReadFunction<any>,
+	tax?: FieldPolicy<any> | FieldReadFunction<any>,
+	user?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ReceiptNodeConnectionKeySpecifier = ('edges' | 'pageInfo' | 'totalCount' | ReceiptNodeConnectionKeySpecifier)[];
+export type ReceiptNodeConnectionFieldPolicy = {
+	edges?: FieldPolicy<any> | FieldReadFunction<any>,
+	pageInfo?: FieldPolicy<any> | FieldReadFunction<any>,
+	totalCount?: FieldPolicy<any> | FieldReadFunction<any>
+};
+export type ReceiptNodeEdgeKeySpecifier = ('cursor' | 'node' | ReceiptNodeEdgeKeySpecifier)[];
+export type ReceiptNodeEdgeFieldPolicy = {
+	cursor?: FieldPolicy<any> | FieldReadFunction<any>,
+	node?: FieldPolicy<any> | FieldReadFunction<any>
 };
 export type ReceiptTypeKeySpecifier = ('cost' | 'date' | 'expense' | 'id' | 'notes' | 'receiptImage' | 'storeName' | 'tags' | 'tax' | 'user' | ReceiptTypeKeySpecifier)[];
 export type ReceiptTypeFieldPolicy = {
@@ -911,9 +1161,29 @@ export type StrictTypedTypePolicies = {
 		keyFields?: false | MutationKeySpecifier | (() => undefined | MutationKeySpecifier),
 		fields?: MutationFieldPolicy,
 	},
+	Node?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | NodeKeySpecifier | (() => undefined | NodeKeySpecifier),
+		fields?: NodeFieldPolicy,
+	},
+	PageInfo?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | PageInfoKeySpecifier | (() => undefined | PageInfoKeySpecifier),
+		fields?: PageInfoFieldPolicy,
+	},
 	Query?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | QueryKeySpecifier | (() => undefined | QueryKeySpecifier),
 		fields?: QueryFieldPolicy,
+	},
+	ReceiptNode?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ReceiptNodeKeySpecifier | (() => undefined | ReceiptNodeKeySpecifier),
+		fields?: ReceiptNodeFieldPolicy,
+	},
+	ReceiptNodeConnection?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ReceiptNodeConnectionKeySpecifier | (() => undefined | ReceiptNodeConnectionKeySpecifier),
+		fields?: ReceiptNodeConnectionFieldPolicy,
+	},
+	ReceiptNodeEdge?: Omit<TypePolicy, "fields" | "keyFields"> & {
+		keyFields?: false | ReceiptNodeEdgeKeySpecifier | (() => undefined | ReceiptNodeEdgeKeySpecifier),
+		fields?: ReceiptNodeEdgeFieldPolicy,
 	},
 	ReceiptType?: Omit<TypePolicy, "fields" | "keyFields"> & {
 		keyFields?: false | ReceiptTypeKeySpecifier | (() => undefined | ReceiptTypeKeySpecifier),

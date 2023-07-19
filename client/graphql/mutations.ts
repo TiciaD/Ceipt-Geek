@@ -27,6 +27,10 @@ export const AUTH_MUTATION = gql`
       success
     }
   }
+`
+export const DELETE_RECEIPT_MUTATION = gql`
+  mutation DeleteReceipt($receiptId: ID!) {
+    deleteReceipt(receiptId: $receiptId) {
 `;
 
 export const UPDATE_USERNAME_MUTATION = gql`
