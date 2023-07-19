@@ -11,6 +11,7 @@ from graphene_django.converter import convert_django_field
 from graphene import relay
 from graphql_relay import to_global_id
 from graphene_django.filter import DjangoFilterConnectionField
+from ..choices import EXPENSE_OPTIONS
 
 import cloudinary.uploader
 from cloudinary.models import CloudinaryField
@@ -336,6 +337,7 @@ class DecimalType(graphene.Scalar):
     def parse_value(value):
         return Decimal(value)
 
+
 class ExtendedConnection(graphene.Connection):
     class Meta:
         abstract = True
@@ -345,6 +347,7 @@ class ExtendedConnection(graphene.Connection):
     def resolve_total_count(root, info, **kwargs):
         return root.length
 
+
 class ReceiptType(DjangoObjectType):
     cost = DecimalType()
     tax = DecimalType()
@@ -352,47 +355,45 @@ class ReceiptType(DjangoObjectType):
     class Meta:
         fields = "__all__"
         model = Receipt
-    
+
     def resolve_receipt_image(self, info):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
 
+
 class ReceiptNode(DjangoObjectType):
     cost = DecimalType()
     tax = DecimalType()
-    id = graphene.ID(source='pk', required=True)
+    id = graphene.ID(source="pk", required=True)
     relay_id = graphene.Field(graphene.ID, description="Relay ID")
 
     class Meta:
         model = Receipt
-        filter_fields = ['user']
-        interfaces = (relay.Node, )
+        filter_fields = ["user"]
+        interfaces = (relay.Node,)
         connection_class = ExtendedConnection
-    
+
     def resolve_receipt_image(self, info):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
 
     def resolve_relay_id(self, info):
-        return to_global_id('ReceiptNode', self.pk)
+        return to_global_id("ReceiptNode", self.pk)
+
 
 class ReceiptQuery(ObjectType):
-    receipt = graphene.Field(
-        ReceiptType,
-        receipt_id=graphene.String(required=True)
-    )
+    receipt = graphene.Field(ReceiptType, receipt_id=graphene.String(required=True))
 
     all_receipts = DjangoFilterConnectionField(
         ReceiptNode,
         sort_by=graphene.List(graphene.String, required=False),
         user_id=graphene.ID(required=False),
-        )
-    
+    )
+
     all_receipts_by_user = DjangoFilterConnectionField(
-        ReceiptNode,
-        sort_by=graphene.List(graphene.String, required=False)
+        ReceiptNode, sort_by=graphene.List(graphene.String, required=False)
     )
     filtered_receipts = DjangoFilterConnectionField(
         ReceiptNode,
@@ -463,7 +464,6 @@ class ReceiptQuery(ObjectType):
             receipts = sort_dataset(receipts, sort_by)
 
         return receipts
-
 
     @staticmethod
     def filter_queryset(qs: QuerySet, condition) -> QuerySet:
@@ -825,6 +825,18 @@ class DeleteTag(graphene.Mutation):
             raise GraphQLError(f"Tag with id: {id} does not exist")
 
 
+class ExpenseQuery(ObjectType):
+    expenses = graphene.List(graphene.List(graphene.String))
+
+    def resolve_expenses(self, info, **kwargs):
+        expense_list = list(EXPENSE_OPTIONS)
+        expenses = []
+        for expense in expense_list:
+            expenses.append(list(expense))
+
+        return expenses
+
+
 class Mutation(graphene.ObjectType):
     login = LoginMutation.Field()
     logout = LogoutMutation.Field()
@@ -839,7 +851,7 @@ class Mutation(graphene.ObjectType):
     delete_tag = DeleteTag.Field()
 
 
-class Query(UserQuery, ReceiptQuery, TagQuery, graphene.ObjectType):
+class Query(UserQuery, ReceiptQuery, TagQuery, ExpenseQuery, graphene.ObjectType):
     pass
 
 

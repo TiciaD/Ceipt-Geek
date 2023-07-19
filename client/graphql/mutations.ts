@@ -1,11 +1,7 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 export const CREATE_ACCOUNT_MUTATION = gql`
-  mutation CreateAccount(
-    $email: String!
-    $password: String!
-    $username: String!
-  ) {
+  mutation CreateAccount($email: String!, $password: String!, $username: String!) {
     createUser(email: $email, password: $password, username: $username) {
       user {
         username
@@ -54,14 +50,8 @@ export const UPDATE_EMAIL_MUTATION = gql`
 `;
 
 export const UPDATE_PASSWORD_MUTATION = gql`
-  mutation UpdatePassword(
-    $updatedPassword: String!
-    $currentPassword: String!
-  ) {
-    updateUser(
-      updatedPassword: $updatedPassword
-      currentPassword: $currentPassword
-    ) {
+  mutation UpdatePassword($updatedPassword: String!, $currentPassword: String!) {
+    updateUser(updatedPassword: $updatedPassword, currentPassword: $currentPassword) {
       user {
         id
         username
@@ -77,4 +67,43 @@ export const DELETE_ACCOUNT_MUTATION = gql`
       success
     }
   }
-`
+`;
+
+export const CREATE_RECEIPT_MUTATION = gql`
+  mutation CreateReceipt(
+    $storeName: String!
+    $date: Date!
+    $expense: String!
+    $tax: DecimalType!
+    $cost: DecimalType!
+    $notes: String
+    $tags: [String!]
+    $receiptImage: Upload
+  ) {
+    createReceipt(
+      receiptData: {
+        storeName: $storeName
+        date: $date
+        expense: $expense
+        tax: $tax
+        cost: $cost
+        notes: $notes
+        tags: $tags
+        receiptImage: $receiptImage
+      }
+    ) {
+      receipt {
+        id
+        storeName
+        cost
+        date
+        tax
+        cost
+        notes
+        user {
+          id
+        }
+      }
+    }
+  }
+`;

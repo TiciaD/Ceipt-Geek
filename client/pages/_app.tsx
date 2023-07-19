@@ -13,6 +13,8 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import Layout from "../components/Layout";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 export const ColorModeContext = createContext({
   toggleColorMode: () => {},
@@ -175,7 +177,9 @@ function App({ Component, pageProps }: AppProps) {
           <CssBaseline enableColorScheme />
           <Layout>
             <ApolloProvider client={client}>
-              <Component {...pageProps} toggleTheme={toggleTheme} />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Component {...pageProps} toggleTheme={toggleTheme} />
+              </LocalizationProvider>
             </ApolloProvider>
           </Layout>
         </ThemeProvider>

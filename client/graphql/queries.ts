@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 export const ALL_RECEIPTS_BY_USER_QUERY = gql`
   query AllReceiptsByUser($first: Int!, $after: String) {
@@ -72,5 +72,20 @@ export const USER_QUERY = gql`
       receiptCount
       tagsCount
     }
+  }
+`;
+
+export const GET_ALL_TAGS_BY_USER_QUERY = gql`
+  query GetAllTagsByUser {
+    allUsersTags {
+      id
+      tagName
+    }
+  }
+`;
+
+export const GET_ALL_EXPENSE_OPTIONS_QUERY = gql`
+  query GetAllExpenseOptions {
+    expenses
   }
 `;
