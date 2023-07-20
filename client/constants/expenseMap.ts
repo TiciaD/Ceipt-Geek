@@ -4,8 +4,7 @@ const expenseMap: Record<
     displayString: string;
     chartBackgroundColor: string;
     chartBorderColor: string;
-  }
-> = {
+  }> = {
   FOOD: {
     displayString: "Food",
     chartBackgroundColor: "rgba(65, 105, 225, 0.25)",

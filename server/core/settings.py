@@ -148,7 +148,6 @@ GRAPHQL_JWT = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=10800),
 }
 
-
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]

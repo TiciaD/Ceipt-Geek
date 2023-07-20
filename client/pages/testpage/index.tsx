@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import { Box, Button, Chip, Typography } from "@mui/material";
-import { Formik } from "formik";
-
 interface expenseOption {
   expenseLabel: string;
   expenseValue: string;
@@ -38,18 +36,6 @@ const expenseOptions: expenseOption[] = [
   { expenseLabel: "Utilities", expenseValue: "UTILITIES" },
 ];
 
-// const expenseOptions = expenses.map((element) => {
-//   return {
-//     expenseLabel: element[0],
-//     expenseValue: element[1],
-//   };
-// });
-
-// const initialExpense = {
-//   expenseLabel: expenseMap[receipt.expense].displayString,
-//   expenseValue: receipt.expense
-// }
-
 const tagOptions = [
   "Green",
   "Blue",
@@ -68,7 +54,6 @@ const filter = createFilterOptions<string>();
 function TestPage() {
   const [expense, setExpense] = useState<expenseOption | null>(null);
   const [expenseError, setExpenseError] = useState("");
-
   const [tags, setTags] = useState<string[]>(["Green", "Red"]);
 
   useEffect(() => {

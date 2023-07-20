@@ -1,8 +1,15 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
 
 export const ALL_RECEIPTS_BY_USER_QUERY = gql`
   query AllReceiptsByUser($first: Int!, $after: String) {
     allReceiptsByUser(first: $first, after: $after) {
+      totalCount
+      pageInfo {
+        startCursor
+        endCursor
+        hasNextPage
+        hasPreviousPage
+      }
       edges {
         cursor
         node {
@@ -11,15 +18,39 @@ export const ALL_RECEIPTS_BY_USER_QUERY = gql`
           cost
           date
           expense
+          tax
+          notes
           tags {
-            id
             tagName
           }
         }
       }
+    }
+  }
+`;
+
+export const EXPENSE_DATA_BY_DATE = gql`
+  query ExpenseDataByDate(
+    $first: Int!
+    $after: String
+    $dateGte: Date!
+    $dateLte: Date!
+  ) {
+    filteredReceipts(
+      first: $first
+      after: $after
+      dateGte: $dateGte
+      dateLte: $dateLte
+    ) {
       pageInfo {
-        endCursor
         hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          expense
+          cost
+        }
       }
     }
   }
@@ -59,6 +90,14 @@ export const GET_RECEIPT = gql`
       }
       notes
     }
+  }`;
+
+export const GET_ALL_TAGS_BY_USER_QUERY = gql`
+  query GetAllTagsByUser {
+    allUsersTags {
+      id
+      tagName
+    }
   }
 `;
 
@@ -68,5 +107,10 @@ export const GET_USERS_TAGS = gql`
       tagName
       id
     }
+  }
+`;
+export const GET_ALL_EXPENSE_OPTIONS_QUERY = gql`
+  query GetAllExpenseOptions {
+    expenses
   }
 `;

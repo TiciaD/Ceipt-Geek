@@ -11,6 +11,7 @@ from graphene_django.converter import convert_django_field
 from graphene import relay
 from graphql_relay import to_global_id
 from graphene_django.filter import DjangoFilterConnectionField
+from ..choices import EXPENSE_OPTIONS
 
 import cloudinary.uploader
 from cloudinary.models import CloudinaryField
@@ -337,6 +338,14 @@ class DecimalType(graphene.Scalar):
         return Decimal(value)
 
 
+class ExtendedConnection(graphene.Connection):
+    class Meta:
+        abstract = True
+
+    total_count = graphene.Int()
+
+    def resolve_total_count(root, info, **kwargs):
+        return root.length
 
 class ReceiptType(DjangoObjectType):
     cost = DecimalType()
@@ -371,6 +380,27 @@ class ReceiptNode(DjangoObjectType):
     def resolve_relay_id(self, info):
         return to_global_id('ReceiptNode', self.pk)
 
+class ReceiptNode(DjangoObjectType):
+    cost = DecimalType()
+    tax = DecimalType()
+    id = graphene.ID(source="pk", required=True)
+    relay_id = graphene.Field(graphene.ID, description="Relay ID")
+
+    class Meta:
+        model = Receipt
+        filter_fields = ["user"]
+        interfaces = (relay.Node,)
+        connection_class = ExtendedConnection
+
+    def resolve_receipt_image(self, info):
+        if self.receipt_image:
+            self.receipt_image = self.image_url()
+        return self.receipt_image
+
+    def resolve_relay_id(self, info):
+        return to_global_id("ReceiptNode", self.pk)
+
+
 class ReceiptQuery(ObjectType):
     receipt = graphene.Field(
         ReceiptType,
@@ -387,6 +417,7 @@ class ReceiptQuery(ObjectType):
         ReceiptNode,
         sort_by=graphene.List(graphene.String, required=False)
     )
+    
     filtered_receipts = DjangoFilterConnectionField(
         ReceiptNode,
         store_name=graphene.String(),
@@ -817,6 +848,18 @@ class DeleteTag(graphene.Mutation):
             raise GraphQLError(f"Tag with id: {id} does not exist")
 
 
+class ExpenseQuery(ObjectType):
+    expenses = graphene.List(graphene.List(graphene.String))
+
+    def resolve_expenses(self, info, **kwargs):
+        expense_list = list(EXPENSE_OPTIONS)
+        expenses = []
+        for expense in expense_list:
+            expenses.append(list(expense))
+
+        return expenses
+
+
 class Mutation(graphene.ObjectType):
     login = LoginMutation.Field()
     logout = LogoutMutation.Field()
@@ -831,7 +874,7 @@ class Mutation(graphene.ObjectType):
     delete_tag = DeleteTag.Field()
 
 
-class Query(UserQuery, ReceiptQuery, TagQuery, graphene.ObjectType):
+class Query(UserQuery, ReceiptQuery, TagQuery, ExpenseQuery, graphene.ObjectType):
     pass
 
 
