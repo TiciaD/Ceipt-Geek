@@ -11,8 +11,11 @@ import {
   InMemoryCache,
   createHttpLink,
 } from "@apollo/client";
+import { createUploadLink } from "apollo-upload-client"
 import { setContext } from "@apollo/client/link/context";
 import Layout from "../components/Layout";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 export const ColorModeContext = createContext({
   toggleColorMode: () => {},
@@ -95,7 +98,7 @@ const darkTheme = createTheme({
 
 type Theme = "light" | "dark";
 
-const httpLink = createHttpLink({
+const httpLink = createUploadLink({
   uri: process.env.BACKEND_URL || "http://localhost:8000/graphql/",
   credentials: "include",
 });
@@ -172,10 +175,12 @@ function App({ Component, pageProps }: AppProps) {
     <ColorModeContext.Provider value={colorMode}>
       <AuthContext.Provider value={authContextValues}>
         <ThemeProvider theme={activeTheme}>
-          <CssBaseline />
+          <CssBaseline enableColorScheme />
           <Layout>
             <ApolloProvider client={client}>
-              <Component {...pageProps} toggleTheme={toggleTheme} />
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Component {...pageProps} toggleTheme={toggleTheme} />
+              </LocalizationProvider>
             </ApolloProvider>
           </Layout>
         </ThemeProvider>

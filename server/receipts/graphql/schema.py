@@ -7,6 +7,10 @@ from graphql import GraphQLError
 from graphene_file_upload.scalars import Upload
 from graphene_django.types import DjangoObjectType, ObjectType
 from graphene_django.converter import convert_django_field
+from graphene import relay
+from graphql_relay import to_global_id
+from graphene_django.filter import DjangoFilterConnectionField
+from ..choices import EXPENSE_OPTIONS
 
 import cloudinary.uploader
 from cloudinary.models import CloudinaryField
@@ -335,6 +339,15 @@ class DecimalType(graphene.Scalar):
         return Decimal(value)
 
 
+class ExtendedConnection(graphene.Connection):
+    class Meta:
+        abstract = True
+
+    total_count = graphene.Int()
+
+    def resolve_total_count(root, info, **kwargs):
+        return root.length
+
 class ReceiptType(DjangoObjectType):
     cost = DecimalType()
     tax = DecimalType()
@@ -342,25 +355,72 @@ class ReceiptType(DjangoObjectType):
     class Meta:
         fields = "__all__"
         model = Receipt
+    
+    def resolve_receipt_image(self, info):
+        if self.receipt_image:
+            self.receipt_image = self.image_url()
+        return self.receipt_image
+
+class ReceiptNode(DjangoObjectType):
+    cost = DecimalType()
+    tax = DecimalType()
+
+    class Meta:
+        model = Receipt
+        filter_fields = ['user']
+        interfaces = (relay.Node, )
+    
+    def resolve_receipt_image(self, info):
+        if self.receipt_image:
+            self.receipt_image = self.image_url()
+        return self.receipt_image
+    
+    id = graphene.ID(source='pk', required=True)
+    relay_id = graphene.Field(graphene.ID, description="Relay ID")
+
+    def resolve_relay_id(self, info):
+        return to_global_id('ReceiptNode', self.pk)
+
+class ReceiptNode(DjangoObjectType):
+    cost = DecimalType()
+    tax = DecimalType()
+    id = graphene.ID(source="pk", required=True)
+    relay_id = graphene.Field(graphene.ID, description="Relay ID")
+
+    class Meta:
+        model = Receipt
+        filter_fields = ["user"]
+        interfaces = (relay.Node,)
+        connection_class = ExtendedConnection
 
     def resolve_receipt_image(self, info):
         if self.receipt_image:
             self.receipt_image = self.image_url()
         return self.receipt_image
 
+    def resolve_relay_id(self, info):
+        return to_global_id("ReceiptNode", self.pk)
+
 
 class ReceiptQuery(ObjectType):
-    receipt = graphene.Field(ReceiptType, receipt_id=graphene.ID(required=True))
-    all_receipts = graphene.List(
+    receipt = graphene.Field(
         ReceiptType,
-        user_id=graphene.ID(required=False),
+        receipt_id=graphene.String(required=True)
+    )
+
+    all_receipts = DjangoFilterConnectionField(
+        ReceiptNode,
         sort_by=graphene.List(graphene.String, required=False),
+        user_id=graphene.ID(required=False),
+        )
+    
+    all_receipts_by_user = DjangoFilterConnectionField(
+        ReceiptNode,
+        sort_by=graphene.List(graphene.String, required=False)
     )
-    all_receipts_by_user = graphene.List(
-        ReceiptType, sort_by=graphene.List(graphene.String, required=False)
-    )
-    filtered_receipts = graphene.List(
-        ReceiptType,
+    
+    filtered_receipts = DjangoFilterConnectionField(
+        ReceiptNode,
         store_name=graphene.String(),
         expense=graphene.String(),
         date_gte=graphene.Date(),
@@ -379,8 +439,8 @@ class ReceiptQuery(ObjectType):
         date_lte=graphene.Date(required=True),
     )
 
-    @login_required
-    @is_owner_or_superuser("receipt")
+    @login_required 
+    @is_owner_or_superuser('receipt')
     def resolve_receipt(self, info, **kwargs):
         receipt = kwargs.get("receipt_instance")
         return receipt
@@ -791,10 +851,6 @@ class DeleteTag(graphene.Mutation):
 
 # PASSWORD RECOVERY SCHEMA
 
-# class PasswordRecoveryType(DjangoObjectType):
-#     user_id = graphene.ID()
-
-
 class PasswordRecoveryQuery(ObjectType):
     password_recovery = graphene.Field(graphene.ID, token=graphene.String(required=True))
 
@@ -928,6 +984,18 @@ class ResetPassword(graphene.Mutation):
         except Exception as e:
             raise GraphQLError(e)
 
+            
+class ExpenseQuery(ObjectType):
+    expenses = graphene.List(graphene.List(graphene.String))
+
+    def resolve_expenses(self, info, **kwargs):
+        expense_list = list(EXPENSE_OPTIONS)
+        expenses = []
+        for expense in expense_list:
+            expenses.append(list(expense))
+
+        return expenses
+
 
 class Mutation(graphene.ObjectType):
     login = LoginMutation.Field()
@@ -945,7 +1013,7 @@ class Mutation(graphene.ObjectType):
     reset_password = ResetPassword.Field()
 
 
-class Query(UserQuery, ReceiptQuery, TagQuery, PasswordRecoveryQuery, graphene.ObjectType):
+class Query(UserQuery, ReceiptQuery, TagQuery, PasswordRecoveryQuery, ExpenseQuery, graphene.ObjectType):
     pass
 
 

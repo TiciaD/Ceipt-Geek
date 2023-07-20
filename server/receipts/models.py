@@ -21,11 +21,11 @@ class Receipt(models.Model):
     date = models.DateField()
     expense = models.CharField(max_length=80, choices=EXPENSE_OPTIONS)
     tax = models.DecimalField(
-        max_digits=2,
+        max_digits=100,
         decimal_places=2,
     )
     cost = models.DecimalField(
-        max_digits=10,
+        max_digits=100,
         decimal_places=2,
     )
     # example of setting consistent image parameters

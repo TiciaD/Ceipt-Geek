@@ -30,8 +30,8 @@ class TagListFilter(ListFilter):
         return bool(self.used_parameters.get(self.parameter_name))
 
 class ReceiptAdmin(admin.ModelAdmin):
-    list_display = ('user', 'store_name', 'date', 'tax', 'cost', 'tags_display')
-    list_filter = ('user', 'store_name', 'date', 'cost', TagListFilter)
+    list_display = ('id', 'expense', 'user', 'store_name', 'date', 'tax', 'cost', 'notes', 'tags_display')
+    list_filter = ('expense', 'user', 'store_name', 'date', TagListFilter)
 
     def tags_display(self, obj):
         return ', '.join([tag.tag_name for tag in obj.tags.all()])
