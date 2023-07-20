@@ -73,9 +73,11 @@ export default function CreateAccountForm() {
         spacing={3}
         sx={{ py: "1rem" }}
       >
-        {error && <Grid item>
-          <Alert severity="error">{error}</Alert>
-        </Grid>}
+        {error && (
+          <Grid item>
+            <Alert severity="error">{error}</Alert>
+          </Grid>
+        )}
         <Grid item>
           <TextField
             sx={{ width: { xs: "12rem", sm: "15rem" } }}
@@ -102,7 +104,12 @@ export default function CreateAccountForm() {
         </Grid>
         <Grid item>
           <FormControl variant="outlined">
-            <InputLabel htmlFor="password">Password</InputLabel>
+            <InputLabel
+              htmlFor="password"
+              error={formik.touched.password && Boolean(formik.errors.password)}
+            >
+              Password
+            </InputLabel>
             <OutlinedInput
               id="password"
               name="password"
@@ -129,7 +136,7 @@ export default function CreateAccountForm() {
               <FormHelperText
                 error
                 id="create-account-error"
-                sx={{ mx: 0, width: { xs: "12rem", sm: "15rem" } }}
+                sx={{ mx: 0, pl: 2, width: { xs: "12rem", sm: "15rem" } }}
               >
                 {formik.errors.password}
               </FormHelperText>
@@ -142,7 +149,7 @@ export default function CreateAccountForm() {
           </Button>
         </Grid>
         <Grid item>
-            <Link href='/login'>Already have an account?</Link>
+          <Link href="/login">Already have an account?</Link>
         </Grid>
       </Grid>
     </form>

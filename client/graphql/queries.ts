@@ -76,6 +76,12 @@ export const USER_QUERY = gql`
   }
 `;
 
+export const PASSWORD_RECOVERY_QUERY = gql`
+  query PasswordRecovery($token: String!) {
+    userId: passwordRecovery(token: $token)
+  }
+`
+
 export const GET_RECEIPT = gql`
   query Receipt($receiptId: String!) {
     receipt(receiptId: $receiptId) {
@@ -109,8 +115,10 @@ export const GET_USERS_TAGS = gql`
     }
   }
 `;
+
 export const GET_ALL_EXPENSE_OPTIONS_QUERY = gql`
   query GetAllExpenseOptions {
     expenses
   }
 `;
+

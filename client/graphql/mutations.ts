@@ -70,7 +70,16 @@ export const DELETE_ACCOUNT_MUTATION = gql`
       success
     }
   }
-  `;
+`;
+
+export const REQUEST_PASSWORD_RESET_MUTATION = gql`
+  mutation RequestPasswordReset($email: String!) {
+    requestPasswordReset(email: $email) {
+      success
+    }
+  }
+`;
+
 export const UPDATE_RECEIPT_MUTATION = gql`
   mutation UpdateReceipt($receiptId: ID!, $receiptData: ReceiptInput!) {
     updateReceipt(receiptId: $receiptId, receiptData: $receiptData) {
@@ -86,6 +95,14 @@ export const UPDATE_RECEIPT_MUTATION = gql`
         }
         receiptImage
       }
+    }
+  }
+`;
+
+export const RESET_PASSWORD_MUTATION = gql`
+  mutation ResetPassword($token: String!, $password: String!, $userId: ID!) {
+    resetPassword(token: $token, password: $password, userId: $userId) {
+      success
     }
   }
 `;

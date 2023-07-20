@@ -12,23 +12,29 @@ import {
   Alert,
   CircularProgress,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import DoneIcon from "@mui/icons-material/Done";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useFormik } from "formik";
-import { UpdatePasswordSchema } from "../types/schemas";
-import { useUpdatePasswordMutation } from "../graphql/generated/graphql";
+import { ResetPasswordSchema } from "../types/schemas";
+import { useResetPasswordMutation } from "../graphql/generated/graphql";
 
-export default function UpdatePasswordForm() {
+export default function UpdatePasswordForm({
+  userId,
+  token,
+}: {
+  userId: string;
+  token: string;
+}) {
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [mutationSubmitted, setMutationSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [updatePasswordMutation] = useUpdatePasswordMutation();
+  const [resetPasswordMutation] = useResetPasswordMutation();
 
   const handleClickShowNewPassword = () => setShowNewPassword((show) => !show);
-  const handleClickShowCurrentPassword = () =>
-    setShowCurrentPassword((show) => !show);
+
   const handleMouseDownPassword = (
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -39,29 +45,29 @@ export default function UpdatePasswordForm() {
     initialValues: {
       newPassword: "",
       confirmPassword: "",
-      currentPassword: "",
     },
-    validationSchema: UpdatePasswordSchema,
+    validationSchema: ResetPasswordSchema,
     onSubmit: async (values) => {
-      setError("")
+      setError("");
       setSuccessMessage("");
       setMutationSubmitted(true);
-      await updatePasswordMutation({
+      await resetPasswordMutation({
         variables: {
-          updatedPassword: values.newPassword,
-          currentPassword: values.currentPassword,
+          token: token,
+          userId: userId,
+          password: values.newPassword,
         },
         onCompleted: (data) => {
-          if (data.updateUser?.user?.id) {
-            setSuccessMessage("Password updated successfully");
+          if (data.resetPassword?.success) {
+            setSuccessMessage("Password updated successfully.");
           } else {
-            setError("Password not updated");
+            setError(
+              "Password not updated. Please submit another password reset request."
+            );
           }
-          setMutationSubmitted(false);
         },
         onError: (error) => {
           setError(error.message);
-          setMutationSubmitted(false);
         },
         fetchPolicy: "network-only",
       });
@@ -151,57 +157,18 @@ export default function UpdatePasswordForm() {
             }
           />
         </Grid>
-        <Grid item>
-          <FormControl variant="outlined">
-            <InputLabel
-              htmlFor="currentPassword"
-              error={
-                formik.touched.currentPassword &&
-                Boolean(formik.errors.currentPassword)
-              }
-            >
-              Current Password
-            </InputLabel>
-            <OutlinedInput
-              id="currentPassword"
-              name="currentPassword"
-              type={showCurrentPassword ? "text" : "password"}
-              sx={{ width: { xs: "12rem", sm: "15rem" } }}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="toggle password visibility"
-                    onClick={handleClickShowCurrentPassword}
-                    onMouseDown={handleMouseDownPassword}
-                    edge="end"
-                  >
-                    {showCurrentPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
-              label="Current Password"
-              value={formik.values.currentPassword}
-              onChange={formik.handleChange}
-              error={
-                formik.touched.currentPassword &&
-                Boolean(formik.errors.currentPassword)
-              }
-            />
-            {formik.touched.currentPassword &&
-              formik.errors.currentPassword && (
-                <FormHelperText
-                  error
-                  id="update-password-currentPassword-error"
-                  sx={{ mx: 0, pl: 2, width: { xs: "12rem", sm: "15rem" } }}
-                >
-                  {formik.errors.currentPassword}
-                </FormHelperText>
-              )}
-          </FormControl>
-        </Grid>
         <Grid item xs={8}>
-          <Button type="submit" variant="contained" size="large">
-            {mutationSubmitted ? (
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={mutationSubmitted}
+          >
+            {error ? (
+              <CloseIcon color="error" />
+            ) : successMessage ? (
+              <DoneIcon color="success" />
+            ) : mutationSubmitted ? (
               <CircularProgress color="warning" size={20} />
             ) : (
               "Update Password"
