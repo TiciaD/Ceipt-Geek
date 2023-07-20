@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import { Box, Button, Chip, Typography } from "@mui/material";
-
 interface expenseOption {
   expenseLabel: string;
   expenseValue: string;
@@ -55,7 +54,6 @@ const filter = createFilterOptions<string>();
 function TestPage() {
   const [expense, setExpense] = useState<expenseOption | null>(null);
   const [expenseError, setExpenseError] = useState("");
-
   const [tags, setTags] = useState<string[]>(["Green", "Red"]);
 
   useEffect(() => {
@@ -151,7 +149,7 @@ function TestPage() {
           }}
           onChange={(event, values) => {
             console.log(values);
-                 
+
             const updatedValues = values.map((value) =>
               value.startsWith("Add ") ? value.substring(4) : value
             );

@@ -15,10 +15,10 @@ export const ALL_RECEIPTS_BY_USER_QUERY = gql`
         node {
           id
           storeName
-          tax
           cost
           date
           expense
+          tax
           notes
           tags {
             tagName
@@ -56,6 +56,7 @@ export const EXPENSE_DATA_BY_DATE = gql`
   }
 `;
 
+
 export const TOTAL_EXPENDITURE_BY_DATE = gql`
   query TotalExpenditureByDate($dateGte: Date!, $dateLte: Date!) {
     totalExpenditureByDate(dateGte: $dateGte, dateLte: $dateLte)
@@ -75,6 +76,22 @@ export const USER_QUERY = gql`
   }
 `;
 
+export const GET_RECEIPT = gql`
+  query Receipt($receiptId: String!) {
+    receipt(receiptId: $receiptId) {
+      storeName
+      expense
+      cost
+      tax
+      date
+      receiptImage
+      tags{
+        tagName
+      }
+      notes
+    }
+  }`;
+
 export const GET_ALL_TAGS_BY_USER_QUERY = gql`
   query GetAllTagsByUser {
     allUsersTags {
@@ -84,6 +101,14 @@ export const GET_ALL_TAGS_BY_USER_QUERY = gql`
   }
 `;
 
+export const GET_USERS_TAGS = gql`
+  query GetAllUsersTags($sortBy: [String]) {
+    allUsersTags(sortBy: $sortBy) {
+      tagName
+      id
+    }
+  }
+`;
 export const GET_ALL_EXPENSE_OPTIONS_QUERY = gql`
   query GetAllExpenseOptions {
     expenses
