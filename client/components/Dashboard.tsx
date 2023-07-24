@@ -13,6 +13,7 @@ export default function Dashboard() {
       dateGte: todayFormattedDate,
       dateLte: todayFormattedDate,
     },
+    fetchPolicy: "cache-and-network",
   });
 
   // Get yesterday's date
