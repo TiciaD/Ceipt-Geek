@@ -13,17 +13,31 @@ import {
   Input,
   Snackbar,
   Alert,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Modal,
 } from "@mui/material";
-import {
-  useReceiptQuery,
-  useUpdateReceiptMutation,
-  ReceiptInput,
-  useGetAllUsersTagsQuery,
-} from "../../graphql/generated/graphql";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 
+import Camera, { FACING_MODES } from "react-html5-camera-photo";
+import { isMobile } from "react-device-detect";
+import "react-html5-camera-photo/build/css/index.css";
+
 import { receiptDetailsStyles } from "./receiptdetails.styles";
+
+import {
+  useReceiptQuery,
+  useUpdateReceiptMutation,
+  useGetAllUsersTagsQuery,
+  useDeleteReceiptMutation,
+  ReceiptInput,
+} from "../../graphql/generated/graphql";
 
 import { expenseOptions } from "../../utils/choices";
 import expenseMap from "../../constants/expenseMap";
@@ -51,6 +65,7 @@ export default function ReceiptDetails() {
   });
 
   const [updateReceiptMutation] = useUpdateReceiptMutation();
+  const [deleteReceiptMutation] = useDeleteReceiptMutation();
 
   const theme = useTheme();
   const styles = receiptDetailsStyles(theme);
@@ -59,8 +74,6 @@ export default function ReceiptDetails() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [isImageModalOpen, setImageModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [editedReceipt, setEditedReceipt] = useState<ReceiptInput>({
     storeName: data?.receipt?.storeName || "",
     expense: data?.receipt?.expense || "FOOD",
@@ -74,6 +87,12 @@ export default function ReceiptDetails() {
   const [tags, setTags] = useState<string[]>([]);
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [isImageModalOpen, setImageModalOpen] = useState(false);
+  const [isPhotoModalOpen, setPhotoModalOpen] = useState(false);
+  const [isDeletingReceipt, setIsDeletingReceipt] = useState(false);
+  
   const [mutationError, setMutationError] = useState("");
 
   useEffect(() => {
@@ -99,7 +118,13 @@ export default function ReceiptDetails() {
     setIsEditing(false);
     setEditedReceipt({
       ...editedReceipt,
+      storeName: data?.receipt?.storeName!,
+      expense: data?.receipt?.expense!,
+      cost: data?.receipt?.cost,
+      tax: data?.receipt?.tax,
+      notes: data?.receipt?.notes,
       tags: data?.receipt?.tags.map((tag) => tag.tagName),
+      receiptImage: data?.receipt?.receiptImage,
     });
     setImageUpload(null);
   };
@@ -137,6 +162,43 @@ export default function ReceiptDetails() {
     setFileName("");
   };
 
+  const handleDeleteReceipt = async () => {
+    await deleteReceiptMutation({
+      variables: {
+        receiptId: receiptid as string,
+      },
+      onCompleted: (data) => {
+        if (data?.deleteReceipt?.success) {
+          router.replace("/");
+        } else {
+          window.alert("Receipt deletion unsuccessful");
+        }
+      },
+      onError: (error) => {
+        window.alert(error.message);
+      },
+      fetchPolicy: "network-only",
+    });
+  };
+
+  const handleTakePhotoAnimationDone = async (dataUri: any) => {
+    const photo = new File(
+      [await dataURLtoBlob(dataUri)],
+      "cameraCapture.png",
+      {
+        type: "image/png",
+      }
+    );
+    setImageUpload(photo);
+    setFileName("cameraCapture.png");
+  };
+
+  const dataURLtoBlob = async (dataURL: string) => {
+    const response = await fetch(dataURL);
+    const blob = await response.blob();
+    return blob;
+  };
+
   if (loading) {
     // Render a loading state if the query is still in progress
     return <div>Loading...</div>;
@@ -149,16 +211,6 @@ export default function ReceiptDetails() {
 
   return (
     <>
-      <Snackbar
-        open={!!mutationError}
-        autoHideDuration={5000}
-        onClose={() => setMutationError("")}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert severity="error" variant="filled">
-          {mutationError}
-        </Alert>
-      </Snackbar>
       {isEditing ? (
         <Card sx={styles.card}>
           <Box sx={styles.mainContainer}>
@@ -174,7 +226,7 @@ export default function ReceiptDetails() {
                   }
                   type="text"
                   name="storeName"
-                  value={data?.receipt?.storeName}
+                  defaultValue={data?.receipt?.storeName}
                   sx={{ mb: 2 }}
                   inputProps={{
                     style: {
@@ -208,13 +260,23 @@ export default function ReceiptDetails() {
                   }
                   onClick={() => setImageModalOpen(true)}
                 />
-                <Button
-                  variant="contained"
-                  sx={styles.uploadImageButton}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Upload Image
-                </Button>
+                <Box sx={styles.uploadbuttonsContainer}>
+                  <Button
+                    variant="contained"
+                    sx={styles.uploadImageButton}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Upload Image
+                  </Button>
+                  <IconButton
+                    aria-label="take photo"
+                    onClick={() => {
+                      setPhotoModalOpen(true);
+                    }}
+                  >
+                    <CameraAltIcon />
+                  </IconButton>
+                </Box>
                 <Typography sx={styles.fileSelectionText}>
                   {fileName ? fileName : "No File Chosen"}
                 </Typography>
@@ -253,6 +315,7 @@ export default function ReceiptDetails() {
                   color="secondary"
                   sx={styles.buttons}
                   variant="contained"
+                  onClick={() => setIsDeletingReceipt(true)}
                 >
                   Delete Receipt
                 </Button>
@@ -476,6 +539,7 @@ export default function ReceiptDetails() {
                   color="secondary"
                   sx={styles.buttons}
                   variant="contained"
+                  onClick={() => setIsDeletingReceipt(true)}
                 >
                   Delete Receipt
                 </Button>
@@ -521,6 +585,75 @@ export default function ReceiptDetails() {
           />
         </Box>
       )}
+      <Modal
+        open={isPhotoModalOpen}
+        onClose={() => {
+          setPhotoModalOpen(false);
+        }}
+      >
+        <Box
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            width: `${isMobile ? "100%" : ""}`,
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "#fff",
+            padding: "10px",
+            borderRadius: "5px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {isPhotoModalOpen && (
+            <Camera
+              onTakePhotoAnimationDone={(dataUri) => {
+                handleTakePhotoAnimationDone(dataUri);
+                setPhotoModalOpen(false);
+              }}
+              idealFacingMode={FACING_MODES.ENVIRONMENT}
+            />
+          )}
+        </Box>
+      </Modal>
+      <Snackbar
+        open={!!mutationError}
+        autoHideDuration={5000}
+        onClose={() => setMutationError("")}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity="error" variant="filled">
+          {mutationError}
+        </Alert>
+      </Snackbar>
+      <Dialog
+        open={isDeletingReceipt}
+        onClose={() => setIsDeletingReceipt(false)}
+        aria-labelledby="confirm delete account dialog"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Are you sure you want to delete this receipt?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            This is a permanent and irreversible action. All data associated
+            with this receipt will be lost.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteReceipt} color="error">
+            Delete Receipt
+          </Button>
+          <Button
+            onClick={() => setIsDeletingReceipt(false)}
+            color="success"
+            autoFocus={true}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }
