@@ -23,11 +23,12 @@ export const receiptDetailsStyles = (theme: Theme) => ({
     display: "flex",
     flexDirection: "column",
     alignItems: "left",
+    width: "250px",
     "@media (max-width: 600px)": {
-      width: "200px",
       mx: 2,
     },
     "@media (max-width: 400px)": {
+      width: "200px",
       mx: -2,
     },
   },
@@ -36,7 +37,7 @@ export const receiptDetailsStyles = (theme: Theme) => ({
     flexDirection: "column",
     gap: "1rem",
     width: "410px",
-    pl: 7,
+    pl: 3,
     "@media (max-width: 600px)": {
       width: "auto",
       px: 4,
@@ -47,6 +48,18 @@ export const receiptDetailsStyles = (theme: Theme) => ({
     },
   },
   receiptDetailsTypography: { fontSize: "1.35rem" },
+  storeName: { fontWeight: "bold", mb: 1 },
+  image: {
+    cursor: "pointer",
+    marginBottom: "1.5rem",
+    objectFit: "cover",
+    width: "250px",
+    height: "250px",
+    borderRadius: "4px",
+    "@media (max-width: 400px)": {
+      width: "200px",
+    },
+  },
   editGroup: { display: "flex", alignItems: "center" },
   editTextField: { ml: 1, width: "100%" },
   imageModalContainer: {
@@ -55,15 +68,14 @@ export const receiptDetailsStyles = (theme: Theme) => ({
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 9999,
   },
   uploadbuttonsContainer: { display: "flex", alignItems: "center" },
   buttons: { height: "35px", mb: 1 },
   saveButton: { mt: 2 },
   uploadImageButton: { flexGrow: 1, mr: 1 },
+  closeModalButton: { position: "absolute", top: 10, right: 10 },
   fileSelectionText: { fontSize: "12px", mb: 2 },
 });

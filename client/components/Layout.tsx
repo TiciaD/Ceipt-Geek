@@ -19,11 +19,21 @@ export default function Layout({ children }: LayoutProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Navbar toggleTheme={colorMode.toggleColorMode} />
-        <main>
-          <Box sx={{minHeight: '100vh', padding: '2rem', maxWidth: '56rem', marginX: 'auto'}}>
-            {children}
-          </Box>
-        </main>
+      <main>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            padding: "2rem",
+            maxWidth: "56rem",
+            marginX: "auto",
+            "@media (max-width: 300px)": {
+              padding: "5px",
+            }
+          }}
+        >
+          {children}
+        </Box>
+      </main>
       <Footer />
     </>
   );

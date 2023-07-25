@@ -21,9 +21,10 @@ import {
   DialogActions,
   Modal,
 } from "@mui/material";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import CloseIcon from "@mui/icons-material/Close";
 
 import Camera, { FACING_MODES } from "react-html5-camera-photo";
 import { isMobile } from "react-device-detect";
@@ -44,13 +45,26 @@ import expenseMap from "../../constants/expenseMap";
 
 import ReceiptPlaceholder from "../../public/placeholder-receipt.png";
 
+import { useAuth } from "../../utils/useAuth";
+
 export default function ReceiptDetails() {
   const router = useRouter();
   const { receiptid } = router.query;
 
+  const { logout } = useAuth();
+
   const { data, loading, error, refetch } = useReceiptQuery({
     variables: {
       receiptId: receiptid ? String(receiptid) : "",
+    },
+    onError: (error) => {
+      if (
+        error.message.startsWith("Please login") ||
+        error.message.startsWith("Invalid Token")
+      ) {
+        logout();
+        router.push("/login");
+      }
     },
     fetchPolicy: "cache-and-network",
   });
@@ -92,7 +106,7 @@ export default function ReceiptDetails() {
   const [isImageModalOpen, setImageModalOpen] = useState(false);
   const [isPhotoModalOpen, setPhotoModalOpen] = useState(false);
   const [isDeletingReceipt, setIsDeletingReceipt] = useState(false);
-  
+
   const [mutationError, setMutationError] = useState("");
 
   useEffect(() => {
@@ -151,6 +165,14 @@ export default function ReceiptDetails() {
         refetch();
       },
       onError: (error) => {
+        if (
+          error.message.startsWith("Please login") ||
+          error.message.startsWith("Invalid Token")
+        ) {
+          logout();
+          router.push("/login");
+        }
+
         console.error("Mutation error:", error);
         setMutationError(
           "Something went wrong saving your changes. Please check your inputs and try again."
@@ -232,7 +254,6 @@ export default function ReceiptDetails() {
                     style: {
                       fontSize: "2rem",
                       fontWeight: "bold",
-                      maxWidth: "200px",
                     },
                   }}
                 />
@@ -243,23 +264,25 @@ export default function ReceiptDetails() {
                     year: "numeric",
                   })}
                 </Typography>
-                <img
-                  style={{
-                    cursor: "pointer",
-                    marginBottom: "0.5rem",
-                    border: "1px solid black",
-                    objectFit: "cover",
-                    width: "200px",
-                    height: "250px",
-                  }}
-                  src={data?.receipt?.receiptImage || ReceiptPlaceholder.src}
-                  alt={
-                    data?.receipt?.receiptImage
-                      ? `${data?.receipt?.storeName} receipt`
-                      : `receipt`
-                  }
-                  onClick={() => setImageModalOpen(true)}
-                />
+                <Box sx={styles.image}>
+                  <img
+                    style={{
+                      width: "inherit",
+                      cursor: "inherit",
+                      marginBottom: "inherit",
+                      objectFit: "inherit",
+                      height: "inherit",
+                      borderRadius: "inherit",
+                    }}
+                    src={data?.receipt?.receiptImage || ReceiptPlaceholder.src}
+                    alt={
+                      data?.receipt?.receiptImage
+                        ? `${data?.receipt?.storeName} receipt`
+                        : `receipt`
+                    }
+                    onClick={() => setImageModalOpen(true)}
+                  />
+                </Box>
                 <Box sx={styles.uploadbuttonsContainer}>
                   <Button
                     variant="contained"
@@ -419,7 +442,6 @@ export default function ReceiptDetails() {
                         : option;
                       return (
                         <Chip
-                          variant="outlined"
                           label={label}
                           {...getTagProps({ index })}
                           sx={styles.receiptDetailsTypography}
@@ -501,7 +523,7 @@ export default function ReceiptDetails() {
           <Box sx={styles.mainContainer}>
             <CardContent>
               <Box sx={styles.firstColContainer}>
-                <Typography variant="h4" sx={{ fontWeight: "bold", mb: 1 }}>
+                <Typography variant="h4" sx={styles.storeName}>
                   {data?.receipt?.storeName}
                 </Typography>
                 <Typography>
@@ -511,23 +533,25 @@ export default function ReceiptDetails() {
                     year: "numeric",
                   })}
                 </Typography>
-                <img
-                  style={{
-                    cursor: "pointer",
-                    marginBottom: "1.5rem",
-                    border: "1px solid black",
-                    objectFit: "cover",
-                    width: "200px",
-                    height: "250px",
-                  }}
-                  src={data?.receipt?.receiptImage || ReceiptPlaceholder.src}
-                  alt={
-                    data?.receipt?.receiptImage
-                      ? `${data?.receipt?.storeName} receipt`
-                      : `receipt`
-                  }
-                  onClick={() => setImageModalOpen(true)}
-                />
+                <Box sx={styles.image}>
+                  <img
+                    style={{
+                      width: "inherit",
+                      cursor: "inherit",
+                      marginBottom: "inherit",
+                      objectFit: "inherit",
+                      height: "inherit",
+                      borderRadius: "inherit",
+                    }}
+                    src={data?.receipt?.receiptImage || ReceiptPlaceholder.src}
+                    alt={
+                      data?.receipt?.receiptImage
+                        ? `${data?.receipt?.storeName} receipt`
+                        : `receipt`
+                    }
+                    onClick={() => setImageModalOpen(true)}
+                  />
+                </Box>
                 <Button
                   onClick={handleEdit}
                   sx={styles.buttons}
@@ -565,11 +589,12 @@ export default function ReceiptDetails() {
           </Box>
         </Card>
       )}
-      {isImageModalOpen && (
-        <Box
-          sx={styles.imageModalContainer}
-          onClick={() => setImageModalOpen(false)} // Handle click event to close the image modal
-        >
+      <Modal
+        open={isImageModalOpen}
+        sx={styles.imageModalContainer}
+        onClose={() => setImageModalOpen(false)} // Handle click event to close the image modal
+      >
+        <>
           <img
             style={{
               maxHeight: "90%",
@@ -583,39 +608,59 @@ export default function ReceiptDetails() {
                 : `receipt enlarged`
             }
           />
-        </Box>
-      )}
+          <IconButton
+            aria-label="close image preview"
+            onClick={() => {
+              setImageModalOpen(false);
+            }}
+            sx={styles.closeModalButton}
+          >
+            <CloseIcon />
+          </IconButton>
+        </>
+      </Modal>
       <Modal
         open={isPhotoModalOpen}
         onClose={() => {
           setPhotoModalOpen(false);
         }}
       >
-        <Box
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: `${isMobile ? "100%" : ""}`,
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "#fff",
-            padding: "10px",
-            borderRadius: "5px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          {isPhotoModalOpen && (
-            <Camera
-              onTakePhotoAnimationDone={(dataUri) => {
-                handleTakePhotoAnimationDone(dataUri);
-                setPhotoModalOpen(false);
-              }}
-              idealFacingMode={FACING_MODES.ENVIRONMENT}
-            />
-          )}
-        </Box>
+        <>
+          <Box
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              width: `${isMobile ? "100%" : ""}`,
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "#fff",
+              padding: "10px",
+              borderRadius: "5px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {isPhotoModalOpen && (
+              <Camera
+                onTakePhotoAnimationDone={(dataUri) => {
+                  handleTakePhotoAnimationDone(dataUri);
+                  setPhotoModalOpen(false);
+                }}
+                idealFacingMode={FACING_MODES.ENVIRONMENT}
+              />
+            )}
+          </Box>
+          <IconButton
+            aria-label="close camera"
+            onClick={() => {
+              setPhotoModalOpen(false);
+            }}
+            sx={styles.closeModalButton}
+          >
+            <CloseIcon />
+          </IconButton>
+        </>
       </Modal>
       <Snackbar
         open={!!mutationError}
