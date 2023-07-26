@@ -3,7 +3,7 @@ import CreateReceiptForm from "../../forms/CreateReceiptForm";
 
 export default function CreateReceipt() {
   return (
-    <Card sx={{ minWidth: 275, padding: "2rem" }}>
+    <Card sx={{ minWidth: 200, padding: {sm: "2rem", xs: "10px"} }}>
       <CardContent>
         <Typography
           variant="h4"

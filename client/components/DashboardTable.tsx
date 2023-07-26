@@ -12,7 +12,13 @@ import {
 import {
   Alert,
   Box,
+  Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
   LinearProgress,
   Snackbar,
@@ -49,17 +55,19 @@ export default function ReceiptsTable() {
   const [rows, setRows] = useState<IRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [queuedDeleteReceiptId, setQueuedDeleteReceiptId] = useState("");
+  const [isDeletingReceipt, setIsDeletingReceipt] = useState(false);
 
   queryReceiptData(setRows, setLoading);
 
-  const handleDeleteReceipt = (id: GridRowId) => {
+  const handleDeleteReceipt = () => {
     deleteReceiptMutation({
       variables: {
-        receiptId: String(id),
+        receiptId: queuedDeleteReceiptId,
       },
       onCompleted: (data) => {
         if (data?.deleteReceipt?.success) {
-          setRows(rows.filter((row) => row.id !== id));
+          setRows(rows.filter((row) => row.id !== queuedDeleteReceiptId));
         }
       },
       onError: (error) => {
@@ -69,6 +77,9 @@ export default function ReceiptsTable() {
       },
       fetchPolicy: "network-only",
     });
+
+    setIsDeletingReceipt(false);
+    setQueuedDeleteReceiptId("");
   };
 
   function renderCellExpand(params: GridRenderCellParams<any, string>) {
@@ -110,8 +121,8 @@ export default function ReceiptsTable() {
       type: "number",
       width: 100,
       valueGetter: (params) => {
-        const total = params.row.cost
-        const tax = params.row.tax
+        const total = params.row.cost;
+        const tax = params.row.tax;
         return total - tax;
       },
       valueFormatter: (params: GridValueFormatterParams<number>) => {
@@ -166,14 +177,14 @@ export default function ReceiptsTable() {
         return tagNames;
       },
       renderCell: (params) => {
-        const tags = params.value.split(",");
+        const tagsString = params.value;
+        const tags = tagsString ? params.value.split(",") : [];
         return (
           <Grid container spacing={1}>
             {tags.map((tag: string) => {
               return (
-                <Grid item>
+                <Grid item key={tag}>
                   <Chip
-                    variant="outlined"
                     label={tag}
                     sx={{
                       borderColor:
@@ -207,7 +218,10 @@ export default function ReceiptsTable() {
             icon={<DeleteIcon />}
             label="Delete Receipt"
             title="Delete Receipt"
-            onClick={() => handleDeleteReceipt(params.row.id)}
+            onClick={() => {
+              setIsDeletingReceipt(true);
+              setQueuedDeleteReceiptId(params.row.id);
+            }}
             color="error"
           />,
         ];
@@ -283,6 +297,39 @@ export default function ReceiptsTable() {
           }}
         />
       </Box>
+      <Dialog
+        open={isDeletingReceipt}
+        onClose={() => {
+          setIsDeletingReceipt(false);
+          setQueuedDeleteReceiptId("");
+        }}
+        aria-labelledby="confirm delete account dialog"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Are you sure you want to delete this receipt?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            This is a permanent and irreversible action. All data associated
+            with this receipt will be lost.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteReceipt} color="error">
+            Delete Receipt
+          </Button>
+          <Button
+            onClick={() => {
+              setIsDeletingReceipt(false);
+              setQueuedDeleteReceiptId("");
+            }}
+            color="success"
+            autoFocus={true}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

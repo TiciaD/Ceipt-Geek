@@ -13,6 +13,7 @@ export default function Dashboard() {
       dateGte: todayFormattedDate,
       dateLte: todayFormattedDate,
     },
+    fetchPolicy: "cache-and-network",
   });
 
   // Get yesterday's date
@@ -28,7 +29,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <Card sx={{ width: "auto", padding: "2rem", }}>
+      <Card sx={{ width: "auto", padding: "2rem" }}>
         <CardContent>
           <Typography
             variant="h4"

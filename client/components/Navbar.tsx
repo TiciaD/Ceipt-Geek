@@ -23,11 +23,11 @@ interface NavLink {
 
 const pages: NavLink[] = [
   {
-    label: 'Add Expense',
+    label: 'Add Receipt',
     href: '/create-receipt',
   },
   {
-    label: 'Expenses',
+    label: 'Dashboard',
     href: '/',
   },
 ];
@@ -36,10 +36,6 @@ const settingsMenuLinks: NavLink[] = [
   {
     label: 'Profile',
     href: '/profile',
-  },
-  {
-    label: 'Reports',
-    href: '/reports',
   },
   {
     label: 'Dashboard',

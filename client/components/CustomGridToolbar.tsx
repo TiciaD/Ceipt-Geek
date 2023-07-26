@@ -18,7 +18,7 @@ export default function CustomGridToolbar() {
       <Button
         variant="contained"
         startIcon={<AddIcon />}
-        onClick={() => router.push("/createreceipt")}
+        onClick={() => router.push("/create-receipt")}
         sx={{ fontSize: "0.8125rem", marginRight: "auto" }}
       >
         Add Receipt
