@@ -173,7 +173,6 @@ export default function ReceiptsTable() {
               return (
                 <Grid item>
                   <Chip
-                    variant="outlined"
                     label={tag}
                     sx={{
                       borderColor:
