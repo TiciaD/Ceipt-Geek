@@ -37,10 +37,10 @@ const settingsMenuLinks: NavLink[] = [
     label: 'Profile',
     href: '/profile',
   },
-  {
-    label: 'Reports',
-    href: '/reports',
-  },
+  // {
+  //   label: 'Reports',
+  //   href: '/reports',
+  // },
   {
     label: 'Dashboard',
     href: '/',
