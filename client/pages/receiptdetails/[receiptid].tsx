@@ -264,7 +264,7 @@ export default function ReceiptDetails() {
                     year: "numeric",
                   })}
                 </Typography>
-                <Box sx={styles.image}>
+                <Box sx={styles.editImage}>
                   <img
                     style={{
                       width: "inherit",

@@ -60,6 +60,17 @@ export const receiptDetailsStyles = (theme: Theme) => ({
       width: "200px",
     },
   },
+  editImage: {
+    cursor: "pointer",
+    marginBottom: "0.5rem",
+    objectFit: "cover",
+    width: "250px",
+    height: "250px",
+    borderRadius: "4px",
+    "@media (max-width: 400px)": {
+      width: "200px",
+    },
+  },
   editGroup: { display: "flex", alignItems: "center" },
   editTextField: { ml: 1, width: "100%" },
   imageModalContainer: {
