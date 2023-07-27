@@ -30,7 +30,7 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../../utils/useAuth";
-import { profileStyles } from "./profile.styles";
+import { profileStyles } from "../../styles/profile.styles";
 
 export interface IPartialUser {
   id: string;
