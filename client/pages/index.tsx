@@ -21,5 +21,5 @@ export default function Home() {
     }
   }, [userToken, authToken]);
 
-  return <div>{authToken ? <Dashboard router={router} /> : <WelcomeCard />}</div>;
+  return <div>{authToken ? <Dashboard /> : <WelcomeCard />}</div>;
 }
