@@ -1,30 +1,56 @@
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+  startOfWeek,
+  endOfWeek,
+  subYears,
+} from "date-fns";
+
 function getDates() {
-  const formatDate = (date: Date) => {
-    const formattedDate = date.toISOString().split("T")[0];
-    return formattedDate;
-  };
-
   const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1; // Month starts from 0
+  const previousYearDate = subYears(currentDate, 1);
 
-  const firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1);
-  const lastDayOfMonth = new Date(currentYear, currentMonth, 0);
-
-  const formattedFirstDayOfMonth = formatDate(firstDayOfMonth);
-  const formattedLastDayOfMonth = formatDate(lastDayOfMonth);
-
-  const firstDayOfYear = new Date(currentYear, 0, 1);
-  const lastDayOfYear = new Date(currentYear, 11, 31);
-
-  const formattedFirstDayOfYear = formatDate(firstDayOfYear);
-  const formattedLastDayOfYear = formatDate(lastDayOfYear);
+  const formattedCurrentDate = format(currentDate, "yyyy-MM-dd");
+  const formattedFirstDayOfMonth = format(
+    startOfMonth(currentDate),
+    "yyyy-MM-dd"
+  );
+  const formattedLastDayOfMonth = format(endOfMonth(currentDate), "yyyy-MM-dd");
+  const formattedFirstDayOfYear = format(
+    startOfYear(currentDate),
+    "yyyy-MM-dd"
+  );
+  const formattedLastDayOfYear = format(endOfYear(currentDate), "yyyy-MM-dd");
+  const formattedFirstDayOfWeek = format(
+    startOfWeek(currentDate, { weekStartsOn: 1 }),
+    "yyyy-MM-dd"
+  );
+  const formattedLastDayOfWeek = format(
+    endOfWeek(currentDate, { weekStartsOn: 1 }),
+    "yyyy-MM-dd"
+  );
+  const formattedFirstDayOfPreviousYear = format(
+    startOfYear(previousYearDate),
+    "yyyy-MM-dd"
+  );
+  const formattedLastDayOfPreviousYear = format(
+    endOfYear(previousYearDate),
+    "yyyy-MM-dd"
+  );
 
   return {
+    formattedCurrentDate,
     formattedFirstDayOfMonth,
     formattedLastDayOfMonth,
     formattedFirstDayOfYear,
     formattedLastDayOfYear,
+    formattedFirstDayOfWeek,
+    formattedLastDayOfWeek,
+    formattedFirstDayOfPreviousYear,
+    formattedLastDayOfPreviousYear,
   };
 }
 

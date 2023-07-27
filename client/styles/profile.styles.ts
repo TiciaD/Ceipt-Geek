@@ -5,8 +5,8 @@ export const profileStyles = (theme: Theme) => ({
     boxShadow: 24,
     borderRadius: "10px",
     px: "2rem",
-    py: "3.5rem",
-    marginTop: "20px",
+    py: "3rem",
+    marginTop: { sm: "20px", xs: 0 },
   },
   usernameTextfieldContainer: {
     [theme.breakpoints.up("md")]: {
@@ -67,31 +67,12 @@ export const profileStyles = (theme: Theme) => ({
       marginBlock: "30px",
     },
   },
-  gridItem: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "7.5px",
-  },
-  profileDetailsTypographyLeft: {
+  typographyCategory: {
     fontWeight: "bold",
-    [theme.breakpoints.up("md")]: {
-      width: "300px",
-      marginLeft: "75px",
-    },
-    [theme.breakpoints.down("md")]: {
-      fontSize: "12px",
-    },
+    fontSize: { sm: "1.1rem", xs: "1rem" },
   },
-  profileDetailsTypographyRight: {
-    fontWeight: "bold",
-    [theme.breakpoints.up("md")]: {
-      width: "300px",
-      marginLeft: "150px",
-    },
-    [theme.breakpoints.down("md")]: {
-      fontSize: "12px",
-    },
+  typographyInfo: {
+    fontSize: { sm: "1.1rem", xs: "1rem" },
   },
   editProfileContainer: {
     display: "flex",
@@ -107,7 +88,7 @@ export const profileStyles = (theme: Theme) => ({
       fontSize: "12px",
     },
     "@media (max-width: 300px)": {
-      width: "auto",
+      width: "100%",
     },
   },
   modalContainer: {

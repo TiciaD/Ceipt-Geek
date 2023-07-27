@@ -1,30 +1,53 @@
-import { Box, Card, CardContent, Typography } from "@mui/material";
+import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
 
 import { useTotalExpenditureByDateQuery } from "../graphql/generated/graphql";
 import DashboardTable from "./DashboardTable";
 import GraphCarousel from "./GraphCarousel";
 
-export default function Dashboard() {
-  const currentDate = new Date();
-  const todayFormattedDate = currentDate.toISOString().split("T")[0];
+import getDates from "../utils/getDates";
 
+export default function Dashboard() {
+  const {
+    formattedCurrentDate,
+    formattedFirstDayOfMonth,
+    formattedLastDayOfMonth,
+    formattedFirstDayOfYear,
+    formattedLastDayOfYear,
+    formattedFirstDayOfWeek,
+    formattedLastDayOfWeek,
+  } = getDates();
+
+  
   const totalExpenditureToday = useTotalExpenditureByDateQuery({
     variables: {
-      dateGte: todayFormattedDate,
-      dateLte: todayFormattedDate,
+      dateGte: formattedCurrentDate,
+      dateLte: formattedCurrentDate,
     },
     fetchPolicy: "cache-and-network",
   });
 
-  // Get yesterday's date
-  currentDate.setDate(currentDate.getDate() - 1);
-  const yesterdayFormattedDate = currentDate.toISOString().split("T")[0];
-
-  const totalExpenditureYesterday = useTotalExpenditureByDateQuery({
+  const totalExpenditureThisWeek = useTotalExpenditureByDateQuery({
     variables: {
-      dateGte: yesterdayFormattedDate,
-      dateLte: yesterdayFormattedDate,
+      dateGte: formattedFirstDayOfWeek,
+      dateLte: formattedLastDayOfWeek,
     },
+    fetchPolicy: "cache-and-network",
+  });
+
+  const totalExpenditureThisMonth = useTotalExpenditureByDateQuery({
+    variables: {
+      dateGte: formattedFirstDayOfMonth,
+      dateLte: formattedLastDayOfMonth,
+    },
+    fetchPolicy: "cache-and-network",
+  });
+
+  const totalExpenditureThisYear = useTotalExpenditureByDateQuery({
+    variables: {
+      dateGte: formattedFirstDayOfYear,
+      dateLte: formattedLastDayOfYear,
+    },
+    fetchPolicy: "cache-and-network",
   });
 
   return (
@@ -32,56 +55,101 @@ export default function Dashboard() {
       <Card sx={{ width: "auto", padding: "2rem" }}>
         <CardContent>
           <Typography
-            variant="h4"
-            sx={{ fontWeight: "bold" }}
+            sx={{
+              fontWeight: "bold",
+              mb: 3,
+              fontSize: { sm: "1.75rem", xs: "1.5rem" },
+            }}
             align="center"
-            gutterBottom
           >
             {"You've Spent:"}
           </Typography>
-          <Box>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: "bold", padding: 0 }}
-              align="center"
-              gutterBottom
-            >
-              Today:
-            </Typography>
-            {totalExpenditureToday.loading ? (
-              <p>Loading...</p>
-            ) : (
-              <Typography variant="body1" align="center" gutterBottom>
-                {totalExpenditureToday.error
-                  ? totalExpenditureToday.error.message
-                  : `${totalExpenditureToday.data?.totalExpenditureByDate?.toFixed(
-                      2
-                    )}`}
+          <Grid container rowSpacing={1.5} columnSpacing={{ xs: 1 }}>
+            <Grid item xs={12} sm={6}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: "bold" }}
+                align="center"
+                gutterBottom
+              >
+                Today:
               </Typography>
-            )}
-          </Box>
-          <Box>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: "bold" }}
-              align="center"
-              gutterBottom
-            >
-              Yesterday:
-            </Typography>
-            {totalExpenditureYesterday.loading &&
-            !totalExpenditureToday.error ? (
-              <p>Loading...</p>
-            ) : (
-              <Typography variant="body1" align="center" gutterBottom>
-                {totalExpenditureYesterday.error
-                  ? totalExpenditureYesterday.error.message
-                  : `${totalExpenditureYesterday?.data?.totalExpenditureByDate?.toFixed(
-                      2
-                    )}`}
+              {totalExpenditureToday.loading ? (
+                <p>Loading...</p>
+              ) : (
+                <Typography variant="body1" align="center" gutterBottom>
+                  {totalExpenditureToday.error
+                    ? totalExpenditureToday.error.message
+                    : `$${totalExpenditureToday.data?.totalExpenditureByDate?.toFixed(
+                        2
+                      )}`}
+                </Typography>
+              )}
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: "bold" }}
+                align="center"
+                gutterBottom
+              >
+                This Week:
               </Typography>
-            )}
-          </Box>
+              {totalExpenditureThisWeek.loading ? (
+                <p>Loading...</p>
+              ) : (
+                <Typography variant="body1" align="center" gutterBottom>
+                  {totalExpenditureThisWeek.error
+                    ? totalExpenditureThisWeek.error.message
+                    : `$${totalExpenditureThisWeek.data?.totalExpenditureByDate?.toFixed(
+                        2
+                      )}`}
+                </Typography>
+              )}
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: "bold" }}
+                align="center"
+                gutterBottom
+              >
+                This Month:
+              </Typography>
+              {totalExpenditureThisMonth.loading ? (
+                <p>Loading...</p>
+              ) : (
+                <Typography variant="body1" align="center" gutterBottom>
+                  {totalExpenditureThisMonth.error
+                    ? totalExpenditureThisMonth.error.message
+                    : `$${totalExpenditureThisMonth.data?.totalExpenditureByDate?.toFixed(
+                        2
+                      )}`}
+                </Typography>
+              )}
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: "bold" }}
+                align="center"
+                gutterBottom
+              >
+                This Year:
+              </Typography>
+              {totalExpenditureThisYear.loading ? (
+                <p>Loading...</p>
+              ) : (
+                <Typography variant="body1" align="center" gutterBottom>
+                  {totalExpenditureThisYear.error
+                    ? totalExpenditureThisYear.error.message
+                    : `$${totalExpenditureThisYear.data?.totalExpenditureByDate?.toFixed(
+                        2
+                      )}`}
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
         </CardContent>
       </Card>
       <GraphCarousel />
