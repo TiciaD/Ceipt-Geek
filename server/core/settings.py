@@ -264,7 +264,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 CSRF_TRUSTED_ORIGINS = ['https://*.gitpod.io',
-                        'https://ceipt-geek.onrender.com']
+                        'https://ceipt-geek-gb2g.onrender.com']
 
 # REST framework filters
 
