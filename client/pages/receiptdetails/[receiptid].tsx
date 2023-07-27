@@ -30,7 +30,7 @@ import Camera, { FACING_MODES } from "react-html5-camera-photo";
 import { isMobile } from "react-device-detect";
 import "react-html5-camera-photo/build/css/index.css";
 
-import { receiptDetailsStyles } from "./receiptdetails.styles";
+import { receiptDetailsStyles } from "../../styles/receiptdetails.styles";
 
 import {
   useReceiptQuery,
