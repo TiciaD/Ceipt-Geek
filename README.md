@@ -19,7 +19,7 @@ Ceipt Geek helps you organize your receipts by providing a convenient place for 
 If you would like to test the application, you can use our test user credentials:
 
 ```
-username: user1
+email: user1@email.com
 password: Password123!
 ```
 ***Please don't change these credentials if using this test user account**
