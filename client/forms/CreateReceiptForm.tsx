@@ -41,7 +41,7 @@ export default function CreateReceiptForm() {
   const router = useRouter();
   const { logout } = useAuth();
 
-  const { loading: isTagsLoading, error: tagsError } = useGetAllTagsByUserQuery(
+  useGetAllTagsByUserQuery(
     {
       onCompleted: (data) => {
         setTagOptions(data.allUsersTags?.map((tag) => tag?.tagName!)!);
@@ -74,7 +74,7 @@ export default function CreateReceiptForm() {
       storeName: "",
       cost: 0,
       tax: 0,
-      date: dayjs(Date.now()),
+      date: dayjs(new Date(Date.now()).toLocaleDateString()),
       expense: expenseOptions[0],
       tags: [],
       notes: "",
@@ -85,7 +85,10 @@ export default function CreateReceiptForm() {
       if (!values.date.isValid()) {
         setError("Invalid Date");
       } else {
-        console.log(values);
+        console.log(new Date(values.date.toISOString()).toLocaleDateString());
+        console.log(values.date.toISOString().split("T")[0]);
+        console.log(values.date.set('hour', 12).toString());
+        console.log(values.date.set('hour', 12).toISOString());
         createReceipt({
           variables: {
             storeName: values.storeName,
@@ -118,23 +121,23 @@ export default function CreateReceiptForm() {
     },
   });
 
-    const handleTakePhotoAnimationDone = async (dataUri: any) => {
-      const photo = new File(
-        [await dataURLtoBlob(dataUri)],
-        "cameraCapture.png",
-        {
-          type: "image/png",
-        }
-      );
-      formik.setFieldValue("receiptImage", photo, true);
-      setImageName("cameraCapture.png");
-    };
+  const handleTakePhotoAnimationDone = async (dataUri: any) => {
+    const photo = new File(
+      [await dataURLtoBlob(dataUri)],
+      "cameraCapture.png",
+      {
+        type: "image/png",
+      }
+    );
+    formik.setFieldValue("receiptImage", photo, true);
+    setImageName("cameraCapture.png");
+  };
 
-    const dataURLtoBlob = async (dataURL: string) => {
-      const response = await fetch(dataURL);
-      const blob = await response.blob();
-      return blob;
-    };
+  const dataURLtoBlob = async (dataURL: string) => {
+    const response = await fetch(dataURL);
+    const blob = await response.blob();
+    return blob;
+  };
 
   return (
     <>
@@ -340,84 +343,75 @@ export default function CreateReceiptForm() {
               helperText={formik.touched.tax && formik.errors.tax}
             />
           </Grid>
-
           <Grid item>
             <FormControl>
-              {!tagsError && !isTagsLoading ? (
-                <>
-                  <Autocomplete
-                    id="tags"
-                    multiple
-                    freeSolo
-                    autoHighlight
-                    handleHomeEndKeys
-                    clearOnBlur
-                    sx={{
-                      width: { xs: "18rem", sm: "25rem" },
-                      "@media (max-width: 430px)": {
-                        width: "11rem",
-                      },
-                    }}
-                    options={tagOptions.sort((a, b) => a.localeCompare(b))}
-                    value={formik.values.tags}
-                    renderInput={(params) => (
-                      <TextField {...params} label="Tags" placeholder="Tags" />
-                    )}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index: number) => {
-                        if (option) {
-                          const label = option.startsWith("Add ")
-                            ? option.substring(4)
-                            : option;
-                          return (
-                            <Chip label={label} {...getTagProps({ index })} />
-                          );
-                        }
-                        return null; // Handle null option
-                      })
+              <Autocomplete
+                id="tags"
+                multiple
+                freeSolo
+                autoHighlight
+                handleHomeEndKeys
+                clearOnBlur
+                sx={{
+                  width: { xs: "18rem", sm: "25rem" },
+                  "@media (max-width: 430px)": {
+                    width: "11rem",
+                  },
+                }}
+                options={tagOptions.sort((a, b) => a.localeCompare(b))}
+                value={formik.values.tags}
+                renderInput={(params) => (
+                  <TextField {...params} label="Tags" placeholder="Tags" />
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index: number) => {
+                    if (option) {
+                      const label = option.startsWith("Add ")
+                        ? option.substring(4)
+                        : option;
+                      return <Chip label={label} {...getTagProps({ index })} />;
                     }
-                    filterOptions={(options, params) => {
-                      const filteredOptions = options.filter(
-                        (option): option is string => option !== null
-                      );
+                    return null; 
+                  })
+                }
+                filterOptions={(options, params) => {
+                  const filteredOptions = options.filter(
+                    (option): option is string => option !== null
+                  );
 
-                      const filtered = filter(filteredOptions, params);
+                  const filtered = filter(filteredOptions, params);
 
-                      const { inputValue } = params;
-                      const isExisting = options.some(
-                        (option) => inputValue === option
-                      );
+                  const { inputValue } = params;
+                  const isExisting = options.some(
+                    (option) => inputValue === option
+                  );
 
-                      if (inputValue !== "" && !isExisting) {
-                        filtered.push(`Add ${inputValue}`);
-                      }
+                  if (inputValue !== "" && !isExisting) {
+                    filtered.push(`Add ${inputValue}`);
+                  }
 
-                      return filtered;
-                    }}
-                    onChange={(event, newValues) => {
-                      const updatedValues = newValues.map((value) =>
-                        value?.startsWith("Add ") ? value?.substring(4) : value
-                      );
-                      formik.setFieldValue("tags", updatedValues, true);
+                  return filtered;
+                }}
+                onChange={(event, newValues) => {
+                  const updatedValues = newValues.map((value) =>
+                    value?.startsWith("Add ") ? value?.substring(4) : value
+                  );
+                  formik.setFieldValue("tags", updatedValues, true);
 
-                      const currentValue = newValues.slice(-1)[0];
-                      if (currentValue && currentValue.startsWith("Add ")) {
-                        const temporaryTag = currentValue.substring(4);
-                        if (temporaryTag) {
-                          setTagOptions((prev) => [...prev, temporaryTag]);
-                        }
-                      } else if (
-                        currentValue &&
-                        !tagOptions.includes(currentValue)
-                      ) {
-                        setTagOptions((prev) => [...prev, currentValue]);
-                      }
-                    }}
-                  />
-                </>
-              ) : (
-                <Typography>No tags found</Typography>
-              )}
+                  const currentValue = newValues.slice(-1)[0];
+                  if (currentValue && currentValue.startsWith("Add ")) {
+                    const temporaryTag = currentValue.substring(4);
+                    if (temporaryTag) {
+                      setTagOptions((prev) => [...prev, temporaryTag]);
+                    }
+                  } else if (
+                    currentValue &&
+                    !tagOptions.includes(currentValue)
+                  ) {
+                    setTagOptions((prev) => [...prev, currentValue]);
+                  }
+                }}
+              />
             </FormControl>
           </Grid>
           <Grid item>

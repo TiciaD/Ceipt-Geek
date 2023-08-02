@@ -35,6 +35,8 @@ import queryReceiptData from "../utils/queryReceiptData";
 import { useDeleteReceiptMutation } from "../graphql/generated/graphql";
 import expenseMap from "../constants/expenseMap";
 
+import { format, add } from "date-fns";
+
 export interface IRow {
   id: string;
   date: string;
@@ -97,14 +99,14 @@ export default function ReceiptsTable() {
       headerName: "Date",
       type: "date",
       width: 130,
-      valueGetter: ({ value }) => value && new Date(value),
-      valueFormatter: ({ value }) =>
-        value &&
-        value.toLocaleDateString("en-us", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        }),
+      valueGetter: ({ value }) => {
+        let date = new Date(value);
+        date = add(date, { days: 1 });
+        return date;
+      },
+      valueFormatter: ({ value }) => {
+        return format(value, "PP");
+      },
     },
     { field: "storeName", headerName: "Store Name", width: 160 },
     {
@@ -241,7 +243,7 @@ export default function ReceiptsTable() {
           {error}
         </Alert>
       </Snackbar>
-      <Box height={900}>
+      <Box height={750} marginTop={3}>
         <DataGrid
           rows={rows}
           columns={columns}
@@ -252,7 +254,7 @@ export default function ReceiptsTable() {
           loading={loading}
           initialState={{
             pagination: {
-              paginationModel: { pageSize: 20, page: 0 },
+              paginationModel: { pageSize: 10, page: 0 },
             },
             sorting: {
               sortModel: [{ field: "date", sort: "desc" }],

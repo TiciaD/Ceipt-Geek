@@ -5,7 +5,7 @@ import { useExpenseDataByDateLazyQuery } from "../graphql/generated/graphql";
 
 function queryMonthExpenseBreakdownData(
   setMonthLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setMonthData: React.Dispatch<React.SetStateAction<IReceiptExpenseData[]>>,
+  setMonthData: React.Dispatch<React.SetStateAction<IReceiptExpenseData[]>>
 ) {
   const [monthHasNextPage, setMonthHasNextPage] = useState(false);
   const [monthCursor, setMonthCursor] = useState("");
@@ -159,4 +159,87 @@ function queryYearExpenseBreakdownData(
   }, [yearHasNextPage, yearCursor]);
 }
 
-export { queryYearExpenseBreakdownData, queryMonthExpenseBreakdownData };
+function queryPrevYearExpenseBreakdownData(
+  setPrevYearLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setPrevYearData: React.Dispatch<React.SetStateAction<IReceiptExpenseData[]>>
+) {
+  const [prevYearHasNextPage, setPrevYearHasNextPage] = useState(false);
+
+  const [prevYearCursor, setPrevYearCursor] = useState("");
+  const { formattedFirstDayOfPreviousYear, formattedLastDayOfPreviousYear } =
+    getDates();
+
+  const [getExpenseData] = useExpenseDataByDateLazyQuery();
+
+  useEffect(() => {
+    // Prev year data
+    getExpenseData({
+      variables: {
+        first: 50,
+        dateGte: formattedFirstDayOfPreviousYear,
+        dateLte: formattedLastDayOfPreviousYear,
+      },
+      onCompleted: (data) => {
+        if (data.filteredReceipts?.edges) {
+          const expenseData = data.filteredReceipts.edges.map(
+            (edge) => edge?.node
+          );
+          setPrevYearData(expenseData as IReceiptExpenseData[]);
+          setPrevYearLoading(false);
+        }
+
+        if (data.filteredReceipts?.pageInfo.hasNextPage) {
+          setPrevYearHasNextPage(true);
+          setPrevYearCursor(data.filteredReceipts?.pageInfo.endCursor!);
+        }
+      },
+      onError: (error) => {
+        setPrevYearLoading(false);
+      },
+      fetchPolicy: "cache-and-network",
+    });
+  }, []);
+
+  useEffect(() => {
+    if (prevYearHasNextPage && prevYearCursor) {
+      getExpenseData({
+        variables: {
+          first: 50,
+          after: prevYearCursor,
+          dateGte: formattedFirstDayOfPreviousYear,
+          dateLte: formattedLastDayOfPreviousYear,
+        },
+        onCompleted: (data) => {
+          if (data.filteredReceipts?.edges) {
+            const expenseData = data.filteredReceipts.edges.map(
+              (edge) => edge?.node
+            );
+            setPrevYearData((prevYearData) => {
+              return [
+                ...prevYearData,
+                ...(expenseData as IReceiptExpenseData[]),
+              ];
+            });
+          }
+
+          if (data.filteredReceipts?.pageInfo.hasNextPage) {
+            setPrevYearHasNextPage(true);
+            setPrevYearCursor(data.filteredReceipts?.pageInfo.endCursor!);
+          } else {
+            setPrevYearHasNextPage(false);
+          }
+        },
+        onError: (error) => {
+          setPrevYearHasNextPage(false);
+        },
+        fetchPolicy: "cache-and-network",
+      });
+    }
+  }, [prevYearHasNextPage, prevYearCursor]);
+}
+
+export {
+  queryYearExpenseBreakdownData,
+  queryMonthExpenseBreakdownData,
+  queryPrevYearExpenseBreakdownData,
+};
