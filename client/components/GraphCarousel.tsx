@@ -37,9 +37,7 @@ function GraphCarousel() {
           yearData.length > 0 ||
           prevYearData.length > 0) && (
           <Carousel
-            stopAutoPlayOnHover={true}
-            interval={10000}
-            autoPlay={true}
+            autoPlay={false}
             swipe={true}
             sx={{ my: 5 }}
             fullHeightHover={false}

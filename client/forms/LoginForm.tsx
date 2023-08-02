@@ -11,6 +11,7 @@ import {
   TextField,
   Link,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { useFormik } from "formik";
 import Visibility from "@mui/icons-material/Visibility";
@@ -22,11 +23,10 @@ import { useAuthMutation } from "../graphql/generated/graphql";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [authMutation] = useAuthMutation();
+  const [error, setError] = useState("");
+  const [authMutation, { loading }] = useAuthMutation();
   const { login } = useAuth();
   const router = useRouter();
-
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (
@@ -45,20 +45,20 @@ export default function LoginForm() {
       await authMutation({
         variables: {
           email: values.email,
-          password: values.password
+          password: values.password,
         },
         onCompleted: (data) => {
           if (data.login?.success === true) {
-            login(data?.login?.token || '')
-            router.push('/')
+            login(data?.login?.token || "");
+            router.push("/");
           } else {
             setError("Login Unsuccessful");
           }
         },
         onError: (error) => {
           setError(error.message);
-        }
-      })
+        },
+      });
     },
   });
 
@@ -134,8 +134,17 @@ export default function LoginForm() {
           </Grid>
         </Grid>
         <Grid item xs={8}>
-          <Button type="submit" variant="contained" size="large">
-            LOGIN
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={loading}
+          >
+            {loading ? (
+              <CircularProgress color="primary" size={26} />
+            ) : (
+              "Login"
+            )}
           </Button>
         </Grid>
         <Grid item>
