@@ -82,14 +82,13 @@ const ProfilePage = () => {
   const [usernameInput, setUsernameInput] = useState<string | null>(null);
   const [usernameMutationLoading, setUsernameMutationLoading] = useState(false);
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("md"));
-  
+
   const handleEmailModalOpen = () => setEmailModalIsOpen(true);
   const handleEmailModalClose = () => setEmailModalIsOpen(false);
   const handlePasswordModalOpen = () => setPasswordModalIsOpen(true);
   const handlePasswordModalClose = () => setPasswordModalIsOpen(false);
   const handleDeletingAccountOpen = () => setIsDeletingAccount(true);
   const handleDeletingAccountClose = () => setIsDeletingAccount(false);
-  
 
   useEffect(() => {
     const token = localStorage.getItem("ceipt-geek-auth-token") || "";
@@ -300,13 +299,37 @@ const ProfilePage = () => {
           <Chip label="My Profile" variant="outlined" />
         </Divider>
 
-        <Grid container spacing={2} sx={{ padding: "20px" }}>
-          <Grid item xs={12} md={6} sx={styles.gridItem}>
-            <Typography sx={styles.profileDetailsTypographyLeft}>
-              Email: {userDetails?.email}
+        <Grid container rowSpacing={1.5} columnSpacing={{ xs: 1 }}>
+          <Grid item xs={12} sm={6}>
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyCategory}
+            >
+              Email:
             </Typography>
-            <Typography sx={styles.profileDetailsTypographyLeft}>
-              Account created:{" "}
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyInfo}
+            >
+              {userDetails?.email}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyCategory}
+            >
+              Account created:
+            </Typography>
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyInfo}
+            >
+              {" "}
               {new Date(userDetails?.dateJoined).toLocaleDateString("en-US", {
                 month: "long",
                 day: "numeric",
@@ -314,13 +337,36 @@ const ProfilePage = () => {
               })}
             </Typography>
           </Grid>
-
-          <Grid item xs={12} md={6} sx={styles.gridItem}>
-            <Typography sx={styles.profileDetailsTypographyRight}>
-              Receipts created: {userDetails?.receiptCount}
+          <Grid item xs={12} sm={6}>
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyCategory}
+            >
+              Receipts created:
             </Typography>
-            <Typography sx={styles.profileDetailsTypographyRight}>
-              Tags created: {userDetails?.tagsCount}
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyInfo}
+            >
+              {userDetails?.receiptCount}
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyCategory}
+            >
+              Tags created:
+            </Typography>
+            <Typography
+              variant="body1"
+              align="center"
+              sx={styles.typographyInfo}
+            >
+              {userDetails?.tagsCount}
             </Typography>
           </Grid>
         </Grid>
@@ -361,9 +407,7 @@ const ProfilePage = () => {
         onClose={handleEmailModalClose}
         aria-labelledby="update email modal"
       >
-        <Box
-          sx={styles.modalContainer}
-        >
+        <Box sx={styles.modalContainer}>
           <UpdateEmailForm
             setUserDetails={setUserDetails}
             setEmailModalIsOpen={setEmailModalIsOpen}
@@ -376,9 +420,7 @@ const ProfilePage = () => {
         onClose={handlePasswordModalClose}
         aria-labelledby="update password modal"
       >
-        <Box
-          sx={styles.modalContainer}
-        >
+        <Box sx={styles.modalContainer}>
           <UpdatePasswordForm />
         </Box>
       </Modal>

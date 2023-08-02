@@ -25,6 +25,7 @@
     "apollo-upload-client": "^17.0.0",
     "axios": "^1.2.1",
     "chart.js": "^4.3.0",
+    "date-fns": "^2.30.0",
     "dayjs": "^1.11.7",
     "eslint": "8.29.0",
     "eslint-config-next": "13.0.6",
