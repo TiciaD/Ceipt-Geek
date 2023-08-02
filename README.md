@@ -16,6 +16,13 @@ Ceipt Geek helps you organize your receipts by providing a convenient place for 
 
 > Since our application is deployed using Render's free tier, please be aware that it can take a few minutes for the application to load. We apologize for the inconvenience and appreciate your understanding!
 
+If you would like to test the application, you can use our test user credentials:
+
+```
+username: user1
+password: Password123!
+```
+***Please don't change these credentials if using this test user account**
 
 ## <a id="license"></a>License
 
